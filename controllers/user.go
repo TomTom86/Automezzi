@@ -578,7 +578,7 @@ func (this *MainController) Manage() {
 		rows := "<tr><td>ID</td><td>NOME</td><td>COGNOME</td><td>EMAIL</td><td>MODIFICA</td></tr>"
 		for i := range users {
 			rows += fmt.Sprintf("<tr><td>%d</td>"+
-				"<td>%s</td><td>%s</td><td>%s</td><td>*</td></tr>", users[i].Id, users[i].First, users[i].Last, users[i].Email)
+				"<td>%s</td><td>%s</td><td>%s</td><td>+</td></tr>", users[i].Id, users[i].First, users[i].Last, users[i].Email)
 	}
 	this.Data["Rows"] = template.HTML(rows)
 		
