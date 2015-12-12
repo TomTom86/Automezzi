@@ -26,7 +26,7 @@
 			<ul>
 				<li class="active"><a href="http://{{.domainname}}/home">HOME</a></li>
 				<li><a href="#">AUTOMEZZI</a></li>	
-				{{if .Group == 2}}<li class="active"><a href="http://{{.domainname}}/user/manage/">SICUREZZA</a></li>{{end}}
+				{{if .Group}}<li class="active"><a href="http://{{.domainname}}/user/manage/">SICUREZZA</a></li>{{end}}
 			</ul>
 		</div>
 	</div>
