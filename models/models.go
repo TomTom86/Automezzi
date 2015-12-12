@@ -11,6 +11,7 @@ type AuthUser struct {
 	Last      string
 	Email     string `orm:"unique"`
 	Password  string
+	Id_key	  string
 	Reg_key   string
 	Reg_date  time.Time `orm:"auto_now_add;type(datetime)"`
 	Reset_key string

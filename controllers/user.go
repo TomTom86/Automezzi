@@ -29,6 +29,7 @@ type User struct {
 	Last string
 	Email string
 	Group int
+	Id_key string
 }
 
 func (this *MainController) Login() {
@@ -198,6 +199,7 @@ func (this *MainController) Register() {
 		// Add user to database with new uuid and send verification email
 		key := uuid.NewV4()
 		user.Reg_key = key.String()
+		user.Id_key = key.String()
 		_, err := o.Insert(&user)
 		if err != nil {
 			flash.Error(u.Email + " gia' registrata")
@@ -548,6 +550,7 @@ func (this *MainController) Reset() {
 
 
 func (this *MainController) Manage() {
+// Only administrator can Manage accounts
 	this.activeContent("user/manage")
 
 	//******** This page requires login
@@ -555,36 +558,34 @@ func (this *MainController) Manage() {
 	if sess == nil {
 		this.Redirect("/home", 302)
 		return
-	}
-	//m := sess.(map[string]interface{})
-
-	//flash := beego.NewFlash()
-
-	//******** Read password hash from database
-	var x pk.PasswordHash
-
-	x.Hash = make([]byte, 32)
-	x.Salt = make([]byte, 16)
-
-	o := orm.NewOrm()
-	o.Using("default")
-	var users []User
-	num, err := o.Raw("SELECT id, first, last, email FROM auth_user",).QueryRows(&users)
-	if err == nil {
-		fmt.Println("user nums: ", num)
-		for i := range users { 
-			fmt.Println(users[i])
+	} 
+	flash := beego.NewFlash()
+	m := sess.(map[string]interface{})
+	if m["group"] == 1 {
+		//******** Read users from database
+		o := orm.NewOrm()
+		o.Using("default")
+		var users []User
+		num, err := o.Raw("SELECT id, first, last, email, id_key FROM auth_user",).QueryRows(&users)
+		if err == nil {
+			fmt.Println("user nums: ", num)
+			for i := range users { 
+				fmt.Println(users[i])
+			}
+			rows := "<tr><center><td>ID</td><td>NOME</td><td>COGNOME</td><td>EMAIL</td><td>MODIFICA</td></center></tr>"
+			for i := range users {
+				rows += fmt.Sprintf("<tr><td>%d</td>"+
+					"<td>%s</td><td>%s</td><td>%s</td><td><center><a href='http://%s/user/user_manage/%s'>+</a></center></td></tr>", users[i].Id, users[i].First, users[i].Last, users[i].Email,"localhost:8080", users[i].Id_key)
+			}
+			this.Data["Rows"] = template.HTML(rows)		
+		} else {
+			flash.Notice("Errore, contattare l'amministratore del sito")
+			flash.Store(&this.Controller)
+			this.Redirect("/notice", 302)
 		}
-		rows := "<tr><td>ID</td><td>NOME</td><td>COGNOME</td><td>EMAIL</td><td>MODIFICA</td></tr>"
-		for i := range users {
-			rows += fmt.Sprintf("<tr><td>%d</td>"+
-				"<td>%s</td><td>%s</td><td>%s</td><td>+</td></tr>", users[i].Id, users[i].First, users[i].Last, users[i].Email)
-	}
-	this.Data["Rows"] = template.HTML(rows)
-		
-	}
-
-	if this.Ctx.Input.Method() == "POST" {
-		fmt.Println(this)		
+	} else {
+			flash.Notice("Non hai i diritti per accedere a questa pagina")
+			flash.Store(&this.Controller)
+			this.Redirect("/notice", 302)	
 	}
 }
