@@ -25,6 +25,7 @@ func (this *MainController) activeContent(view string) {
 		m := sess.(map[string]interface{})
 		this.Data["First"] = m["first"]
 		this.Data["Group"] = m["group"]
+		this.Data["ID_key"] = m["id_key"]
 	}
 }
 

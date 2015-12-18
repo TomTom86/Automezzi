@@ -10,7 +10,6 @@ import (
 	"github.com/astaxie/beego/validation"
 	"github.com/go-gomail/gomail"
 	"github.com/twinj/uuid"
-	"html/template"
 	"strings"
 	"time"
 )
@@ -125,7 +124,7 @@ func (this *MainController) Login() {
 	
 		//******** Create session and go back to previous page
 		var users []User
-		num, err := o.Raw("SELECT auth_user.'group' FROM auth_user WHERE email = ?",email).QueryRows(&users)
+		num, err := o.Raw("SELECT auth_user.'group', auth_user.'id_key' FROM auth_user WHERE email = ?",email).QueryRows(&users)
 		if err == nil {
 			fmt.Println("Group: ", num)
 			fmt.Println("user group: ", users[0].Group)
@@ -133,6 +132,7 @@ func (this *MainController) Login() {
 		  	m["first"] = user.First
 		 	m["username"] = email
 		 	m["timestamp"] = time.Now()
+			m["id_key"] = users[0].Id_key
 		 	if users[0].Group == 1 {
 				 m["group"] = users[0].Group
 			 } else {
@@ -267,68 +267,52 @@ func (this *MainController) Profile() {
 
 	//******** This page requires login
 	sess := this.GetSession("automezzi")
-	if sess == nil {
-		this.Redirect("/user/login/home", 302)
-		return
-	}
-	m := sess.(map[string]interface{})
+	if sess != nil {
+		m := sess.(map[string]interface{})
+		flash := beego.NewFlash()
 
-	flash := beego.NewFlash()
-
-	//******** Read password hash from database
-	var x pk.PasswordHash
-
-	x.Hash = make([]byte, 32)
-	x.Salt = make([]byte, 16)
-
-	o := orm.NewOrm()
-	o.Using("default")
-	user := models.AuthUser{Email: m["username"].(string)}
-	err := o.Read(&user, "Email")
-	if err == nil {
-		// scan in the password hash/salt
-		if x.Hash, err = hex.DecodeString(user.Password[:64]); err != nil {
-			fmt.Println("ERROR:", err)
-		}
-		if x.Salt, err = hex.DecodeString(user.Password[64:]); err != nil {
-			fmt.Println("ERROR:", err)
-		}
-	} else {
-		flash.Error("Internal error")
-		flash.Store(&this.Controller)
-		return
-	}
-
-	// this deferred function ensures that the correct fields from the database are displayed
-	defer func(this *MainController, user *models.AuthUser) {
-		this.Data["First"] = user.First
-		this.Data["Last"] = user.Last
-		this.Data["Email"] = user.Email
-	}(this, &user)
-
-	if this.Ctx.Input.Method() == "POST" {
-		first := this.GetString("first")
-		last := this.GetString("last")
-		email := this.GetString("email")
-		current := this.GetString("current")
-		password := this.GetString("password")
-		password2 := this.GetString("password2")
-		valid := validation.Validation{}
-		valid.Required(first, "first")
-		valid.Email(email, "email")
-		valid.Required(current, "current")
-		if valid.HasErrors() {
-			errormap := []string{}
-			for _, err := range valid.Errors {
-				errormap = append(errormap, "Validation failed on "+err.Key+": "+err.Message+"\n")
+		//******** Read password hash from database
+		var x pk.PasswordHash
+	
+		x.Hash = make([]byte, 32)
+		x.Salt = make([]byte, 16)
+	
+		o := orm.NewOrm()
+		o.Using("default")
+		user := models.AuthUser{Email: m["username"].(string)}
+		err := o.Read(&user, "Email")
+		if err == nil {
+			// scan in the password hash/salt
+			if x.Hash, err = hex.DecodeString(user.Password[:64]); err != nil {
+				fmt.Println("ERROR:", err)
 			}
-			this.Data["Errors"] = errormap
+			if x.Salt, err = hex.DecodeString(user.Password[64:]); err != nil {
+				fmt.Println("ERROR:", err)
+			}
+		} else {
+			flash.Error("Internal error")
+			flash.Store(&this.Controller)
 			return
 		}
-
-		if password != "" {
-			valid.MinSize(password, 6, "password")
-			valid.Required(password2, "password2")
+	
+		// this deferred function ensures that the correct fields from the database are displayed
+		defer func(this *MainController, user *models.AuthUser) {
+			this.Data["First"] = user.First
+			this.Data["Last"] = user.Last
+			this.Data["Email"] = user.Email
+		}(this, &user)
+	
+		if this.Ctx.Input.Method() == "POST" {
+			first := this.GetString("first")
+			last := this.GetString("last")
+			email := this.GetString("email")
+			current := this.GetString("current")
+			password := this.GetString("password")
+			password2 := this.GetString("password2")
+			valid := validation.Validation{}
+			valid.Required(first, "first")
+			valid.Email(email, "email")
+			valid.Required(current, "current")
 			if valid.HasErrors() {
 				errormap := []string{}
 				for _, err := range valid.Errors {
@@ -337,41 +321,58 @@ func (this *MainController) Profile() {
 				this.Data["Errors"] = errormap
 				return
 			}
-
-			if password != password2 {
-				flash.Error("Le password non corrispondono")
+	
+			if password != "" {
+				valid.MinSize(password, 6, "password")
+				valid.Required(password2, "password2")
+				if valid.HasErrors() {
+					errormap := []string{}
+					for _, err := range valid.Errors {
+						errormap = append(errormap, "Validation failed on "+err.Key+": "+err.Message+"\n")
+					}
+					this.Data["Errors"] = errormap
+					return
+				}
+	
+				if password != password2 {
+					flash.Error("Le password non corrispondono")
+					flash.Store(&this.Controller)
+					return
+				}
+				h := pk.HashPassword(password)
+	
+				// Convert password hash to string
+				user.Password = hex.EncodeToString(h.Hash) + hex.EncodeToString(h.Salt)
+			}
+	
+			//******** Compare submitted password with database
+			if !pk.MatchPassword(current, &x) {
+				flash.Error("Password attuale errata")
 				flash.Store(&this.Controller)
 				return
 			}
-			h := pk.HashPassword(password)
-
-			// Convert password hash to string
-			user.Password = hex.EncodeToString(h.Hash) + hex.EncodeToString(h.Salt)
+	
+			//******** Save user info to database
+			user.First = first
+			user.Last = last
+			user.Email = email
+	
+			_, err := o.Update(&user)
+			if err == nil {
+				flash.Notice("Profilo aggiornato")
+				flash.Store(&this.Controller)
+				m["username"] = email
+			} else {
+				flash.Error("Errore interno")
+				flash.Store(&this.Controller)
+				return
+			}
 		}
-
-		//******** Compare submitted password with database
-		if !pk.MatchPassword(current, &x) {
-			flash.Error("Password attuale errata")
-			flash.Store(&this.Controller)
-			return
-		}
-
-		//******** Save user info to database
-		user.First = first
-		user.Last = last
-		user.Email = email
-
-		_, err := o.Update(&user)
-		if err == nil {
-			flash.Notice("Profilo aggiornato")
-			flash.Store(&this.Controller)
-			m["username"] = email
-		} else {
-			flash.Error("Errore interno")
-			flash.Store(&this.Controller)
-			return
-		}
+	} else {
+		this.Redirect("/user/login/home", 302)
+		return
 	}
+	
 }
 
 func (this *MainController) Remove() {
@@ -545,47 +546,5 @@ func (this *MainController) Reset() {
 		flash.Notice("Chiave invalida.")
 		flash.Store(&this.Controller)
 		this.Redirect("/notice", 302)
-	}
-}
-
-
-func (this *MainController) Manage() {
-// Only administrator can Manage accounts
-	this.activeContent("user/manage")
-
-	//******** This page requires login
-	sess := this.GetSession("automezzi")
-	if sess == nil {
-		this.Redirect("/home", 302)
-		return
-	} 
-	flash := beego.NewFlash()
-	m := sess.(map[string]interface{})
-	if m["group"] == 1 {
-		//******** Read users from database
-		o := orm.NewOrm()
-		o.Using("default")
-		var users []User
-		num, err := o.Raw("SELECT id, first, last, email, id_key FROM auth_user",).QueryRows(&users)
-		if err == nil {
-			fmt.Println("user nums: ", num)
-			for i := range users { 
-				fmt.Println(users[i])
-			}
-			rows := "<tr><center><td>ID</td><td>NOME</td><td>COGNOME</td><td>EMAIL</td><td>MODIFICA</td></center></tr>"
-			for i := range users {
-				rows += fmt.Sprintf("<tr><td>%d</td>"+
-					"<td>%s</td><td>%s</td><td>%s</td><td><center><a href='http://%s/user/user_manage/%s'>+</a></center></td></tr>", users[i].Id, users[i].First, users[i].Last, users[i].Email,"localhost:8080", users[i].Id_key)
-			}
-			this.Data["Rows"] = template.HTML(rows)		
-		} else {
-			flash.Notice("Errore, contattare l'amministratore del sito")
-			flash.Store(&this.Controller)
-			this.Redirect("/notice", 302)
-		}
-	} else {
-			flash.Notice("Non hai i diritti per accedere a questa pagina")
-			flash.Store(&this.Controller)
-			this.Redirect("/notice", 302)	
 	}
 }

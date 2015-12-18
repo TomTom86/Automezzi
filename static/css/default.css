@@ -97,7 +97,28 @@ img.right {
 	float: right;
 	margin-left: 15px;
 }
+/*
+table{
+border-collapse: collapse;
+width: 600px;
+}
 
+th{
+background-color: #000;
+color: #fff;
+}
+
+tr:nth-of-type(even){
+background-color: #F3F3F3;
+}
+tr:nth-of-type(odd) {
+background-color:#ddd;
+}
+
+td:nth-child(n+2), th:nth-child(n+2){
+text-align: center;
+}
+*/
 /* Form */
 
 form {
