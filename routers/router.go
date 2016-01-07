@@ -12,7 +12,7 @@ func init() {
 	beego.Router("/user/register", &controllers.MainController{}, "get,post:Register")
 	beego.Router("/user/profile/", &controllers.MainController{}, "get,post:Profile")
 	beego.Router("/manage/user/:parms", &controllers.MainController{}, "get,post:Users_Manage")
-	beego.Router("/user/verif/:uuid", &controllers.MainController{}, "get:Verify")
+	beego.Router("/user/check/:uuid", &controllers.MainController{}, "get:Verify")
 	beego.Router("/user/remove", &controllers.MainController{}, "get,post:Remove")
 	beego.Router("/user/forgot", &controllers.MainController{}, "get,post:Forgot")
 	beego.Router("/user/reset/:uuid", &controllers.MainController{}, "get,post:Reset")

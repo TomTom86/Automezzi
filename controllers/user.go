@@ -29,6 +29,7 @@ type User struct {
 	Email string
 	Group int
 	Id_key string
+	Is_approved bool
 }
 
 func (this *MainController) Login() {
@@ -65,7 +66,7 @@ func (this *MainController) Login() {
 		err := o.Read(&user, "Email")
 		//controll if the account is blocked
 		if err == nil && user.Block_controll < 3 && user.Block_controll >= 0 {
-			if user.Reg_key != "" {
+			if user.Is_approved != true {
 				flash.Error("Account not verified")
 				flash.Store(&this.Controller)
 				return
@@ -198,15 +199,16 @@ func (this *MainController) Register() {
 
 		// Add user to database with new uuid and send verification email
 		key := uuid.NewV4()
-		user.Reg_key = key.String()
 		user.Id_key = key.String()
+		user.Is_approved = false
+
 		_, err := o.Insert(&user)
 		if err != nil {
 			flash.Error(u.Email + " gia' registrata")
 			flash.Store(&this.Controller)
 			return
 		}
-		link := "http://localhost:8080/user/verif/"+ key.String()
+		link := "http://localhost:8080/user/check/"+ user.Id_key
 		m.Email = u.Email
 		m.Subject = "Verifica account portale automezzi"
 		m.Body = "Per verificare l'account premere sul link: <a href=\""+link+"\">"+link+"</a><br><br>Grazie,<br>E' Cosi'"
@@ -228,6 +230,10 @@ type message1 struct {
 }
 
 func sendComunication(email message1) bool {
+	fmt.Println(appcfg_MailHost) 
+	fmt.Println(appcfg_MailHostPort)
+	fmt.Println(appcfg_GmailAccount)
+	fmt.Println(appcfg_GmailAccountPsw)
 	msg := gomail.NewMessage()
 	msg.SetHeader("From", appcfg_GmailAccount, "E' Cosi'")
 	msg.SetHeader("To", email.Email)
@@ -246,16 +252,16 @@ func sendComunication(email message1) bool {
 //di conseguenza in realta' si potrebbe disabilitare anche il moduro di registrazione per come e' stato predisposto o meglio
 //renderlo accessibile soltanto agli utenti amministratori
 func (this *MainController) Verify() {
-	this.activeContent("user/verif")
+	this.activeContent("user/check")
 
 	u := this.Ctx.Input.Param(":uuid")
 	o := orm.NewOrm()
 	o.Using("default")
-	user := models.AuthUser{Reg_key: u}
-	err := o.Read(&user, "Reg_key")
+	user := models.AuthUser{Id_key: u}
+	err := o.Read(&user, "Id_key")
 	if err == nil {
 		this.Data["Verified"] = 1
-		user.Reg_key = ""
+		user.Is_approved = true
 		if _, err := o.Update(&user); err != nil {
 			delete(this.Data, "Verified")
 		}

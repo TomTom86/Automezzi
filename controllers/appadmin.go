@@ -125,7 +125,7 @@ func (this *AdminController) Index() {
 		rows += fmt.Sprintf("<tr><td><a href='http://%s/appadmin/update/%s!%s'>%d</a></td>"+
 			"<td>%s</td><td>%s</td><td>%s</td><td>%s...</td><td>%s</td><td>%s</td><td>%s</td></tr>", domainname, users[x].Email, parms,
 			users[x].Id, users[x].First, users[x].Last, users[x].Email, users[x].Password[:20],
-			users[x].Reg_key, users[x].Reg_date.String()[:i], users[x].Reset_key)
+			users[x].Id_key, users[x].Reg_date.String()[:i], users[x].Reset_key)
 	}
 	this.Data["Rows"] = template.HTML(rows)
 
@@ -179,7 +179,8 @@ func (this *AdminController) Add() {
 
 		// Add user to database with new uuid
 		key := uuid.NewV4()
-		u.Reg_key = key.String()
+		u.Id_key = key.String()
+		u.Is_approved = false
 		_, err := o.Insert(&u)
 		this.Data["User"] = u
 		if err != nil {
@@ -199,7 +200,7 @@ type authUser struct {
 	Last      string `form:"last"`
 	Email     string `form:"email" valid:"Email"`
 	Password  string `form:"password"`
-	Reg_key   string `form:"reg_key"`
+	Id_key   string `form:"Id_key"`
 	Reg_date  string `form:"reg_date"` // ParseForm cannot deal with time.Time in the form definition
 	Reset_key string `form:"reset_key"`
 	Delete    string `form:"delete,checkbox"`
@@ -261,7 +262,7 @@ func (this *AdminController) Update() {
 		user.First = u.First
 		user.Last = u.Last
 		user.Email = u.Email
-		user.Reg_key = u.Reg_key
+		user.Id_key = u.Id_key
 		user.Reset_key = u.Reset_key
 
 		o := orm.NewOrm()
