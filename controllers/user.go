@@ -16,8 +16,8 @@ import (
 
 var(
 	
-	appcfg_GmailAccount string = beego.AppConfig.String("appcfg_GmailAccount")
-	appcfg_GmailAccountPsw string = beego.AppConfig.String("appcfg_GmailAccountPsw")
+	appcfg_MailAccount string = beego.AppConfig.String("appcfg_MailAccount")
+	appcfg_MailAccountPsw string = beego.AppConfig.String("appcfg_MailAccountPsw")
 	appcfg_MailHost string = beego.AppConfig.String("appcfg_MailHost")
 	appcfg_MailHostPort, err = beego.AppConfig.Int("appcfg_MailHostPort")
 )
@@ -32,6 +32,7 @@ type User struct {
 	Is_approved bool
 }
 
+// this function 
 func (this *MainController) Login() {
 	this.activeContent("user/login")
 
@@ -64,8 +65,9 @@ func (this *MainController) Login() {
 		o.Using("default")
 		user := models.AuthUser{Email: email}
 		err := o.Read(&user, "Email")
-		//controll if the account is blocked
+		//check if the account exist and if isn't blocked
 		if err == nil && user.Block_controll < 3 && user.Block_controll >= 0 {
+			//check if the account is verified
 			if user.Is_approved != true {
 				flash.Error("Account not verified")
 				flash.Store(&this.Controller)
@@ -90,7 +92,7 @@ func (this *MainController) Login() {
 				return
 			}
 			
-		
+		//if the account is blocked
 		} else {
 			if user.Block_controll > 2 {
 				fmt.Println(user.Block_controll)
@@ -223,23 +225,25 @@ func (this *MainController) Register() {
 	}
 }
 
+//  type used for send email. It contain mail adress, subject and Body
 type message1 struct {
   Email string
   Subject string
   Body string
 }
 
+//sendComunication func get smtp setting from app.conf and send e-mail
 func sendComunication(email message1) bool {
 	fmt.Println(appcfg_MailHost) 
 	fmt.Println(appcfg_MailHostPort)
-	fmt.Println(appcfg_GmailAccount)
-	fmt.Println(appcfg_GmailAccountPsw)
+	fmt.Println(appcfg_MailAccount)
+	fmt.Println(appcfg_MailAccountPsw)
 	msg := gomail.NewMessage()
-	msg.SetHeader("From", appcfg_GmailAccount, "E' Cosi'")
+	msg.SetHeader("From", appcfg_MailAccount, "E' Cosi'")
 	msg.SetHeader("To", email.Email)
 	msg.SetHeader("Subject", email.Subject)
 	msg.SetBody("text/html", email.Body)
-	m := gomail.NewPlainDialer(appcfg_MailHost, appcfg_MailHostPort, appcfg_GmailAccount, appcfg_GmailAccountPsw)
+	m := gomail.NewPlainDialer(appcfg_MailHost, appcfg_MailHostPort, appcfg_MailAccount, appcfg_MailAccountPsw)
 	if err := m.DialAndSend(msg); err != nil {
 		return false
 	}
