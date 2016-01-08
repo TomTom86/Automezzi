@@ -9,6 +9,7 @@ import (
 	"github.com/astaxie/beego/orm"
 	"github.com/astaxie/beego/validation"
 	"html/template"
+	"time"
 )
 
 /*var(
@@ -165,7 +166,7 @@ func (this *MainController) Users_Manage() {
 				user.First = first
 				user.Last = last
 				user.Email = email
-		
+				user.Last_edit_date = time.Now()	
 				_, err := o.Update(&user)
 				if err == nil {
 					flash.Notice("Profilo aggiornato")

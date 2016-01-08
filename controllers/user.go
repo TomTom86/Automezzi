@@ -30,6 +30,8 @@ type User struct {
 	Group int
 	Id_key string
 	Is_approved bool
+	Last_login_date	time.Time
+	Last_edit_date	time.Time 
 }
 
 
@@ -149,6 +151,16 @@ func (this *MainController) Login() {
 			return
 		}
 		
+		//******** Update last login date
+		user.Last_login_date = time.Now()
+		_, err1 := o.Update(&user)
+		if err1 == nil {
+			fmt.Println("Aggiornato ultimo login")
+		} else {
+			flash.Error("Errore interno")
+			flash.Store(&this.Controller)
+			return
+		}
 	}
 }
 
@@ -202,6 +214,7 @@ func (this *MainController) Register() {
 		// Add user to database with new uuid and send verification email
 		key := uuid.NewV4()
 		user.Id_key = key.String()
+		//set not verification flag
 		user.Is_approved = false
 
 		_, err := o.Insert(&user)
@@ -366,6 +379,7 @@ func (this *MainController) Profile() {
 			user.First = first
 			user.Last = last
 			user.Email = email
+			user.Last_edit_date = time.Now()
 	
 			_, err := o.Update(&user)
 			if err == nil {
@@ -541,8 +555,9 @@ func (this *MainController) Reset() {
 
 			// Convert password hash to string
 			user.Password = hex.EncodeToString(h.Hash) + hex.EncodeToString(h.Salt)
-
+			// Reset Reset_key flag and update last_edit_date
 			user.Reset_key = ""
+			user.Last_edit_date = time.Now()			
 			if _, err := o.Update(&user); err != nil {
 				flash.Error("Errore interno")
 				flash.Store(&this.Controller)
