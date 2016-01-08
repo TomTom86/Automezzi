@@ -41,7 +41,7 @@ func (this *MainController) Manage() {
 	} 
 	flash := beego.NewFlash()
 	m := sess.(map[string]interface{})
-	if m["group"] == 1 {
+	if m["group"] == 3 {
 		//******** Read users from database
 		o := orm.NewOrm()
 		o.Using("default")
@@ -78,7 +78,7 @@ func (this *MainController) Users_Manage() {
 	if sess != nil {
 		m := sess.(map[string]interface{})
 		flash := beego.NewFlash()
-		if m["group"] == 1 {
+		if m["group"] == 3 {
 			var x pk.PasswordHash
 	
 			x.Hash = make([]byte, 32)

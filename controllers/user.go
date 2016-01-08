@@ -138,7 +138,7 @@ func (this *MainController) Login() {
 		 	m["username"] = email
 		 	m["timestamp"] = time.Now()
 			m["id_key"] = users[0].Id_key
-		 	if users[0].Group == 1 {
+		 	if users[0].Group == 3 {
 				 m["group"] = users[0].Group
 			 } else {
 				 m["group"] = 0
