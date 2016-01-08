@@ -32,7 +32,7 @@ type User struct {
 	Is_approved bool
 }
 
-// this function 
+
 func (this *MainController) Login() {
 	this.activeContent("user/login")
 
