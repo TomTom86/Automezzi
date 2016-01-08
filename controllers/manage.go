@@ -104,12 +104,42 @@ func (this *MainController) Users_Manage() {
 				flash.Store(&this.Controller)
 				return
 			}
-		
+			lvlutente := ""
+			switch user.Group {
+				case 0:
+				    lvlutente += fmt.Sprintf("<option value=\"0\" selected=\"selected\">Utente</option>"+
+          "<option value=\"1\">Utente Speciale</option>"+
+          "<option value=\"2\">Agente</option>"+
+          "<option value=\"3\">Amministratore</option>")
+				case 1:
+				    lvlutente += fmt.Sprintf("<option value=\"0\">Utente</option>"+
+          "<option value=\"1\" selected=\"selected\">Utente Speciale</option>"+
+          "<option value=\"2\">Agente</option>"+
+          "<option value=\"3\">Amministratore</option>")
+				case 2:
+				    lvlutente += fmt.Sprintf("<option value=\"0\">Utente</option>"+
+          "<option value=\"1\">Utente Speciale</option>"+
+          "<option value=\"2\" selected=\"selected\">Agente</option>"+
+          "<option value=\"3\">Amministratore</option>")
+				case 3:
+				    lvlutente += fmt.Sprintf("<option value=\"0\">Utente</option>"+
+          "<option value=\"1\">Utente Speciale</option>"+
+          "<option value=\"2\">Agente</option>"+
+          "<option value=\"3\" selected=\"selected\">Amministratore</option>")
+				default:
+				    panic("unrecognized escape character")
+				}
+
+
+	
+			
+    	
 			// this deferred function ensures that the correct fields from the database are displayed
 			defer func(this *MainController, user *models.AuthUser) {
 				this.Data["UFirst"] = user.First
 				this.Data["ULast"] = user.Last
 				this.Data["UEmail"] = user.Email
+				this.Data["LvlUtente"] = template.HTML(lvlutente)
 			}(this, &user)
 		
 			if this.Ctx.Input.Method() == "POST" {
