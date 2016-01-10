@@ -23,7 +23,7 @@ var(
 )
 
 type User struct {
-    Id   int
+    Id   int32
     First string
 	Last string
 	Email string
@@ -138,10 +138,11 @@ func (this *MainController) Login() {
 		 	m["username"] = email
 		 	m["timestamp"] = time.Now()
 			m["id_key"] = users[0].Id_key
+            // check if userlvl is Administrator
 		 	if users[0].Group == 3 {
-				 m["group"] = users[0].Group
+				 m["admin"] = users[0].Group
 			 } else {
-				 m["group"] = 0
+				 m["admin"] = 0
 			 }
 		 	this.SetSession("automezzi", m)
 		 	this.Redirect("/"+back, 302)
@@ -216,6 +217,7 @@ func (this *MainController) Register() {
 		user.Id_key = key.String()
 		//set not verification flag
 		user.Is_approved = false
+        user.Group = 0
 
 		_, err := o.Insert(&user)
 		if err != nil {

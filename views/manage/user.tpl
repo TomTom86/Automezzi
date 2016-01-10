@@ -1,8 +1,3 @@
-<script>
-function myFunction() {
-    document.getElementById("Userlvl").selectedIndex = "2";
-}
-</script>
 <div id="content">
 <h1>{{.UFirst}} {{.ULast}}</h1>
 &nbsp;
@@ -35,16 +30,12 @@ function myFunction() {
 </tr>
 <tr>
     <td>Privilegi Utente:</td>
-    <td><select name="Userlvl" size="1">
-    {{.LvlUtente}}
+    <td><select name="userlvl" size="1">
+    {{.Userlvllist}}
     </select>
     </td>
 </tr>
 <tr><td>&nbsp;</td></tr>
-<tr>      
-    <td>Current password:</td>
-    <td><input name="current" type="password" /></td>
-</tr>
 <tr>
 <td>Optional:</td>
 </tr>
@@ -62,5 +53,6 @@ function myFunction() {
 </tr>
 </table>
 <a href="http://localhost:8080/user/remove">Remove account</a>
+<a href="http://localhost:8080/user/manage">Indietro</a>
 </form>
 </div>

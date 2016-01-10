@@ -10,6 +10,8 @@ import (
 	"github.com/astaxie/beego/validation"
 	"html/template"
 	"time"
+    "strconv"
+    "reflect"
 )
 
 /*var(
@@ -41,7 +43,10 @@ func (this *MainController) Manage() {
 	} 
 	flash := beego.NewFlash()
 	m := sess.(map[string]interface{})
-	if m["group"] == 3 {
+    fmt.Println(m["admin"])
+    fmt.Println(reflect.ValueOf(m["admin"]).Type())  
+	if m["admin"] == 3 {
+        fmt.Printf("hai i diritti")
 		//******** Read users from database
 		o := orm.NewOrm()
 		o.Using("default")
@@ -70,7 +75,7 @@ func (this *MainController) Manage() {
 	}
 }
 
-func (this *MainController) Users_Manage() {
+func (this *MainController) UsersManage() {
 	this.activeContent("manage/user")
 
 	//******** This page requires login
@@ -78,7 +83,7 @@ func (this *MainController) Users_Manage() {
 	if sess != nil {
 		m := sess.(map[string]interface{})
 		flash := beego.NewFlash()
-		if m["group"] == 3 {
+		if m["admin"] == 3 {
 			var x pk.PasswordHash
 	
 			x.Hash = make([]byte, 32)
@@ -104,25 +109,25 @@ func (this *MainController) Users_Manage() {
 				flash.Store(&this.Controller)
 				return
 			}
-			lvlutente := ""
+			var userlvllist string
 			switch user.Group {
 				case 0:
-				    lvlutente += fmt.Sprintf("<option value=\"0\" selected=\"selected\">Utente</option>"+
+				    userlvllist += fmt.Sprintf("<option value=\"0\" selected=\"selected\">Utente</option>"+
           "<option value=\"1\">Utente Speciale</option>"+
           "<option value=\"2\">Agente</option>"+
           "<option value=\"3\">Amministratore</option>")
 				case 1:
-				    lvlutente += fmt.Sprintf("<option value=\"0\">Utente</option>"+
+				    userlvllist += fmt.Sprintf("<option value=\"0\">Utente</option>"+
           "<option value=\"1\" selected=\"selected\">Utente Speciale</option>"+
           "<option value=\"2\">Agente</option>"+
           "<option value=\"3\">Amministratore</option>")
 				case 2:
-				    lvlutente += fmt.Sprintf("<option value=\"0\">Utente</option>"+
+				    userlvllist += fmt.Sprintf("<option value=\"0\">Utente</option>"+
           "<option value=\"1\">Utente Speciale</option>"+
           "<option value=\"2\" selected=\"selected\">Agente</option>"+
           "<option value=\"3\">Amministratore</option>")
 				case 3:
-				    lvlutente += fmt.Sprintf("<option value=\"0\">Utente</option>"+
+				    userlvllist += fmt.Sprintf("<option value=\"0\">Utente</option>"+
           "<option value=\"1\">Utente Speciale</option>"+
           "<option value=\"2\">Agente</option>"+
           "<option value=\"3\" selected=\"selected\">Amministratore</option>")
@@ -139,20 +144,21 @@ func (this *MainController) Users_Manage() {
 				this.Data["UFirst"] = user.First
 				this.Data["ULast"] = user.Last
 				this.Data["UEmail"] = user.Email
-				this.Data["LvlUtente"] = template.HTML(lvlutente)
+				this.Data["Userlvllist"] = template.HTML(userlvllist)
 			}(this, &user)
 		
 			if this.Ctx.Input.Method() == "POST" {
 				first := this.GetString("first")
 				last := this.GetString("last")
 				email := this.GetString("email")
-				current := this.GetString("current")
+				//current := this.GetString("current")
 				password := this.GetString("password")
 				password2 := this.GetString("password2")
+                userlvl := this.GetString("userlvl")
 				valid := validation.Validation{}
 				valid.Required(first, "first")
 				valid.Email(email, "email")
-				valid.Required(current, "current")
+				//valid.Required(current, "current")
 				if valid.HasErrors() {
 					errormap := []string{}
 					for _, err := range valid.Errors {
@@ -185,18 +191,19 @@ func (this *MainController) Users_Manage() {
 					user.Password = hex.EncodeToString(h.Hash) + hex.EncodeToString(h.Salt)
 				}
 		
-				//******** Compare submitted password with database
+				/******** Compare submitted password with database
 				if !pk.MatchPassword(current, &x) {
 					flash.Error("Password attuale errata")
 					flash.Store(&this.Controller)
 					return
-				}
+				}*/
 		
 				//******** Save user info to database
 				user.First = first
 				user.Last = last
 				user.Email = email
-				user.Last_edit_date = time.Now()	
+				user.Last_edit_date = time.Now()
+                user.Group = ConvertInt(userlvl)	
 				_, err := o.Update(&user)
 				if err == nil {
 					flash.Notice("Profilo aggiornato")
@@ -210,9 +217,11 @@ func (this *MainController) Users_Manage() {
 				
 			}		
 		} else {
+            //if user lvl isn't admin he is redirect
+            this.Redirect("/home", 302)
 			flash.Error("Non disponi dei privilegi necessari")
 			flash.Store(&this.Controller)
-			return
+            return
 		}  
 		
 		
@@ -221,4 +230,14 @@ func (this *MainController) Users_Manage() {
 		return
 	}
 	
+}
+
+// this function convert string in int
+func ConvertInt(s string) int {
+    //convert string in int
+    i, err := strconv.Atoi(s)
+	if err != nil {
+ 	   panic(err)
+	}
+	return i
 }

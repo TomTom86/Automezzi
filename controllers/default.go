@@ -24,7 +24,7 @@ func (this *MainController) activeContent(view string) {
 		this.Data["InSession"] = 1 // for login bar in header.tpl
 		m := sess.(map[string]interface{})
 		this.Data["First"] = m["first"]
-		this.Data["Group"] = m["group"]
+		this.Data["Admin"] = m["admin"]
 		this.Data["ID_key"] = m["id_key"]
 	}
 }
