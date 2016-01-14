@@ -37,7 +37,11 @@ type User struct {
 
 func (this *MainController) Login() {
 	this.activeContent("user/login")
-
+	sess := this.GetSession("automezzi")
+	if sess != nil {
+		this.Redirect("/home", 302)
+		return
+	} 
 	back := strings.Replace(this.Ctx.Input.Param(":back"), ">", "/", -1) // allow for deeper URL such as l1/l2/l3 represented by l1>l2>l3
 	fmt.Println("back is", back)
 	if this.Ctx.Input.Method() == "POST" {
