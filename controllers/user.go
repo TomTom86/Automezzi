@@ -16,10 +16,12 @@ import (
 
 var(
 	
+	appcfg_domainname string = beego.AppConfig.String("appcfg_domainname")
 	appcfg_MailAccount string = beego.AppConfig.String("appcfg_MailAccount")
 	appcfg_MailAccountPsw string = beego.AppConfig.String("appcfg_MailAccountPsw")
 	appcfg_MailHost string = beego.AppConfig.String("appcfg_MailHost")
 	appcfg_MailHostPort, err = beego.AppConfig.Int("appcfg_MailHostPort")
+
 )
 
 type User struct {
@@ -229,7 +231,7 @@ func (this *MainController) Register() {
 			flash.Store(&this.Controller)
 			return
 		}
-		link := "http://localhost:8080/user/check/"+ user.Id_key
+		link := "http://" + appcfg_domainname + "/user/check/"+ user.Id_key
 		m.Email = u.Email
 		m.Subject = "Verifica account portale automezzi"
 		m.Body = "Per verificare l'account premere sul link: <a href=\""+link+"\">"+link+"</a><br><br>Grazie,<br>E' Cosi'"
@@ -513,9 +515,9 @@ func (this *MainController) Forgot() {
 			flash.Store(&this.Controller)
 			return
 		}
-		
+
 		m := message1{}
-		link := "http://localhost:8080/user/reset/"+ u.String()
+		link := "http://" + appcfg_domainname + "/user/reset/"+ u.String()
 		m.Email = email
 		m.Subject = "Richiesta di azzeramento password Portale E' Così"
 		m.Body = "Per resettare la tua password, premi sul seguente link: <a href=\""+link+"\">"+link+"</a><br><br>Grazie,<br>E' Cosi'"

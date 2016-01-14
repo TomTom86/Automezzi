@@ -23,5 +23,15 @@
 	<table border="1" style="width:600px">
 	{{.Rows}}
 	</table>
+	{{if .ShowNav}}
+	<br>
+	<div id="progressbar"></div>pointer in data set
+	<div align="right">
+	<a href="http://{{.domainname}}/manage/{{.order}}!0!{{.query}}">&lt;&lt;Start</a>&nbsp;&nbsp;&nbsp;&nbsp;
+	{{if .showprev}}<a href="http://{{.domainname}}/manage/{{.order}}!{{.prev}}!{{.query}}">&lt;Prev</a>&nbsp;&nbsp;&nbsp;&nbsp;{{end}}
+	{{if .next}}<a href="http://{{.domainname}}/manage/{{.order}}!{{.next}}!{{.query}}">Next&gt;</a>&nbsp;&nbsp;&nbsp;&nbsp;{{end}}
+	<a href="http://{{.domainname}}/manage/{{.order}}!{{.end}}!{{.query}}">End&gt;&gt;</a>
+	</div>
+	{{end}}
 	</div>
 </div>

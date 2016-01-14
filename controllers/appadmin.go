@@ -27,7 +27,7 @@ func (this *AdminController) activeAdminContent(view string) {
 	this.LayoutSections["Footer"] = "footer.tpl"
 	this.TplNames = view + ".tpl"
 	this.Data["domainname"] = "localhost:8080"
-	//this.Data["domainname"] = "yourdomainname"
+	
 	sess := this.GetSession("automezzi")
 	if sess != nil {
 		this.Data["InSession"] = 1 // for login bar in header.tpl
@@ -190,15 +190,18 @@ func (this *AdminController) Add() {
 	if m["admin"] == 3 {
         fmt.Printf("hai i diritti")
 		parms := this.Ctx.Input.Param(":parms")
+		fmt.Println(parms)
 		this.Data["parms"] = parms
 	
 		if this.Ctx.Input.Method() == "POST" {
 
-			u := models.AuthUser{}
+			u := authUser{}
+			
 			if err := this.ParseForm(&u); err != nil {
 				fmt.Println("cannot parse form")
 				return
 			}
+			fmt.Println(u)
 			this.Data["User"] = u
 			valid := validation.Validation{}
 			if b, _ := valid.Valid(&u); !b {
@@ -213,12 +216,13 @@ func (this *AdminController) Add() {
 	
 			// Convert password hash to string
 			u.Password = hex.EncodeToString(h.Hash) + hex.EncodeToString(h.Salt)
-	
+			
 			// Add user to database with new uuid
 			key := uuid.NewV4()
 			u.Id_key = key.String()
 			u.Is_approved = false
-			_, err := o.Insert(&u)
+			user := models.AuthUser{First: u.First, Last: u.Last, Email: u.Email, Password: u.Password, Id_key: u.Id_key}
+			_, err := o.Insert(&user)
 			this.Data["User"] = u
 			if err != nil {
 				flash.Error(u.Email + " already registered")
@@ -241,8 +245,9 @@ type authUser struct {
 	First     string `form:"first" valid:"Required"`
 	Last      string `form:"last"`
 	Email     string `form:"email" valid:"Email"`
-	Password  string `form:"password"`
-	Id_key   string `form:"Id_key"`
+	Password  string `form:"password" valid:"MinSize(6)"`
+	Id_key   string `form:"id_key"`
+	Is_approved bool
 	Reg_date  string `form:"reg_date"` // ParseForm cannot deal with time.Time in the form definition
 	Reset_key string `form:"reset_key"`
 	Delete    string `form:"delete,checkbox"`
@@ -339,7 +344,7 @@ func (this *AdminController) Update() {
 			this.Redirect("/notice", 302)	
 	}
 }
-
+/*
 func (this *AdminController) Manage() {
 	this.activeAdminContent("appadmin/manage")
 
@@ -415,3 +420,4 @@ func (this *AdminController) Manage() {
 	}
 	this.Data["progress"] = float64(offset*100) / float64(max(count, 1))
 }
+*/

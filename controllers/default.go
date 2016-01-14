@@ -17,7 +17,7 @@ func (this *MainController) activeContent(view string) {
 	this.LayoutSections["Sidebar"] = "sidebar.tpl"
 	this.LayoutSections["Footer"] = "footer.tpl"
 	this.TplNames = view + ".tpl"
-	
+	this.Data["domainname"] = "localhost:8080"
 
 	sess := this.GetSession("automezzi")
 	if sess != nil {
@@ -26,6 +26,7 @@ func (this *MainController) activeContent(view string) {
 		this.Data["First"] = m["first"]
 		this.Data["Admin"] = m["admin"]
 		this.Data["ID_key"] = m["id_key"]
+
 	}
 }
 

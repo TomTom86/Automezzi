@@ -16,7 +16,7 @@
 <tr><td>Last:</td><td><input name="last" value="{{.User.Last}}" size="30" /></td></tr>
 <tr><td>Email:  {{if .Errors.Email}}{{.Errors.Email}}{{end}}</td><td><input name="email" value="{{.User.Email}}" size="30" /></td></tr>
 <tr><td>Password:</td><td><input name="password" value="{{.User.Password}}" size="30" readonly /></td></tr>
-<tr><td>Reg key</td><td><input name="reg_key" value="{{.User.Reg_key}}" size="50" /></td></tr>
+<tr><td>ID key</td><td><input name="id_key" value="{{.User.Id_key}}" size="50" /></td></tr>
 <tr><td>Reg date</td><td><input name="reg_date" value="{{.User.Reg_date}}" size="50" readonly /></td></tr>
 <tr><td>Reset key</td><td><input name="reset_key" value="{{.User.Reset_key}}" size="50" /></td></tr>
 <tr><td>&nbsp;</td></tr>

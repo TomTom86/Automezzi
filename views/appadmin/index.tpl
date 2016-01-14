@@ -11,7 +11,7 @@
 	<option value="first">First</option>
 	<option value="last">Last</option>
 	<option value="email">Email</option>
-	<option value="reg_key">Reg key</option>
+	<option value="id_key">ID key</option>
 	<option value="reg_date">Reg date</option>
 </select>
 <select name="compareop">
@@ -43,7 +43,7 @@ Total: {{.count}} records – {{.query}} ordered by {{.order}}
 <th style="width:100px"><a href="http://{{.domainname}}/appadmin/index/{{if eq .order "last"}}-{{end}}last!{{.offset}}!{{.query}}">Last</a></th>
 <th style="width:100px"><a href="http://{{.domainname}}/appadmin/index/{{if eq .order "email"}}-{{end}}email!{{.offset}}!{{.query}}">Email</a></th>
 <th style="width:100px">Password</th>
-<th style="width:200px">Reg key</th>
+<th style="width:200px">ID key</th>
 <th style="width:150px"><a href="http://{{.domainname}}/appadmin/index/{{if eq .order "reg_date"}}-{{end}}reg_date!{{.offset}}!{{.query}}">Reg date</a></th>
 <th style="width:100px">Reset key</th>
 </tr>
