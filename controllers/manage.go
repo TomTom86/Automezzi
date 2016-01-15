@@ -7,6 +7,7 @@ import (
     "reflect"
 	"encoding/hex"
 	"fmt"
+	"strings"
 	
 	"automezzi/models"
 	pk "automezzi/utilities/pbkdf2wrapper"
@@ -35,9 +36,161 @@ type User struct {
 	Id_key string
 }*/
 
+func (this *MainController) setCompare(query string) (orm.QuerySeter, bool) {
+	o := orm.NewOrm()
+	qs := o.QueryTable("auth_user")
+	if this.Ctx.Input.Method() == "POST" {
+		f := compareform{}
+		if err := this.ParseForm(&f); err != nil {
+			fmt.Println("cannot parse form")
+			return qs, false
+		}
+		valid := validation.Validation{}
+		if b, _ := valid.Valid(&f); !b {
+			this.Data["Errors"] = valid.ErrorsMap
+			return qs, false
+		}
+		if len(f.Compareop) >= 5 && f.Compareop[:5] == "__not" {
+			qs = qs.Exclude(f.Comparefield+f.Compareop[5:], f.Compareval)
+		} else {
+			qs = qs.Filter(f.Comparefield+f.Compareop, f.Compareval)
+		}
+		this.Data["query"] = f.Comparefield + f.Compareop + "," + f.Compareval
+	} else {
+		str := strings.Split(query, ",")
+		i := strings.Index(str[0], "__")
+		if len(str[0][i:]) >= 5 && str[0][i:i+5] == "__not" {
+			qs = qs.Exclude(str[0][:i]+str[0][i+5:], str[1])
+		} else {
+			qs = qs.Filter(str[0], str[1])
+		}
+		this.Data["query"] = query
+	}
+	return qs, true
+}
 
 
 func (this *MainController) Manage() {
+// Only administrator can Manage accounts
+	this.activeContent("manage/manage")
+
+	//******** This page requires login
+	sess := this.GetSession("automezzi")
+	if sess == nil {
+		this.Redirect("/home", 302)
+		return
+	} 
+	flash := beego.NewFlash()
+	m := sess.(map[string]interface{})
+    fmt.Println(m["admin"])
+    fmt.Println(reflect.ValueOf(m["admin"]).Type())  
+	if m["admin"] != 3 {
+			flash.Notice("Non hai i diritti per accedere a questa pagina")
+			flash.Store(&this.Controller)
+			this.Redirect("/notice", 302)	
+	}
+	
+    fmt.Printf("hai i diritti")
+	
+	//in caso di panic reindirizza alla home
+	defer func(this *MainController) {
+		if r := recover(); r != nil {
+			fmt.Println("Recovered in Index", r)
+			this.Redirect("/home", 302)
+		}
+	}(this)
+	
+	//******** Read users from database
+	if this.Ctx.Input.Param(":parms") == ""{
+		o := orm.NewOrm()
+		o.Using("default")
+		var users []User
+		
+		num, err := o.Raw("SELECT id, first, last, email, id_key FROM auth_user",).QueryRows(&users)
+		if err != nil {
+			flash.Notice("Errore, contattare l'amministratore del sito")
+			flash.Store(&this.Controller)
+			this.Redirect("/notice", 302)		
+		}
+		
+		fmt.Println("user nums: ", num)
+		for i := range users { 
+			fmt.Println(users[i])
+		}
+		rows := "<tr><center><td>ID</td><td>NOME</td><td>COGNOME</td><td>EMAIL</td><td>MODIFICA</td></center></tr>"
+		for i := range users {
+			rows += fmt.Sprintf("<tr><td>%d</td>"+
+				"<td>%s</td><td>%s</td><td>%s</td><td><center><a href='http://%s/manage/user/%s'>+</a></center></td></tr>", users[i].Id, users[i].First, users[i].Last, users[i].Email, appcfg_domainname, users[i].Id_key)
+		}
+		this.Data["Rows"] = template.HTML(rows)		
+	}
+	const pagesize = 10
+	parms := this.Ctx.Input.Param(":parms")
+	this.Data["parms"] = parms
+	str := strings.Split(parms, "!")
+	fmt.Println("parms is", str)
+	order := str[0]
+	off, _ := strconv.Atoi(str[1])
+	offset := int64(off)
+	if offset < 0 {
+		offset = 0
+	}
+	query := str[2]
+
+	var users []*models.AuthUser
+	rows := ""
+
+	qs, ok := this.setCompare(query)
+	if !ok {
+		fmt.Println("cannot set QuerySeter")
+		o := orm.NewOrm()
+		qs := o.QueryTable("auth_user")
+		qs = qs.Filter("id__gte", 0)
+		this.Data["query"] = "id__gte,0"
+	}
+
+	count, _ := qs.Count()
+	this.Data["count"] = count
+	if offset >= count {
+		offset = 0
+	}
+	num, err := qs.Limit(pagesize, offset).OrderBy(order).All(&users)
+	if err != nil {
+		fmt.Println("Query table failed:", err)
+	}
+	//domainname := this.Data["domainname"]
+	//rows := "<tr><center><td>ID</td><td>NOME</td><td>COGNOME</td><td>EMAIL</td><td>MODIFICA</td></center></tr>"
+	for i := range users {
+			rows += fmt.Sprintf("<tr><td>%d</td>"+
+				"<td>%s</td><td>%s</td><td>%s</td><td><center><a href='http://%s/manage/user/%s'>+</a></center></td></tr>", users[i].Id, users[i].First, users[i].Last, users[i].Email, appcfg_domainname, users[i].Id_key)
+	}
+	this.Data["Rows"] = template.HTML(rows)
+
+	this.Data["order"] = order
+	this.Data["offset"] = offset
+	this.Data["end"] = max(0, count-pagesize)
+	if num+offset < count {
+		this.Data["next"] = num + offset
+	}
+	if offset-pagesize >= 0 {
+		this.Data["prev"] = offset - pagesize
+		this.Data["showprev"] = true
+	} else if offset > 0 && offset < pagesize {
+		this.Data["prev"] = 0
+		this.Data["showprev"] = true
+	}
+
+	if count > pagesize {
+		this.Data["ShowNav"] = true
+	}
+	this.Data["progress"] = float64(offset*100) / float64(max(count, 1))
+
+	
+	
+	
+}
+
+func (this *MainController) ManageOLD() {
 // Only administrator can Manage accounts
 	this.activeContent("manage/manage")
 

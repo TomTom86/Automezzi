@@ -29,13 +29,13 @@
 </td>
 <td> {{if .Errors.Compareval}}{{.Errors.Compareval}}{{end}}<input name="compareval" value="0"
 	title="All search terms are compared as text strings. 'Reg date' has a date format of yyyy-mm-dd." /></td>
-<td><input type="submit" value="Search" /></td>
+<td><input type="submit" value="Cerca" /></td>
 </tr>
 </table>
 </form>
 <br>
 </div>
-Total: {{.count}} records – {{.query}} ordered by {{.order}}
+Totale: {{.count}} records – {{.query}} ordinati per {{.order}}
 <table border="1" style="width:800px">
 <tr>
 <th style="width:100px"><a href="http://{{.domainname}}/appadmin/index/{{if eq .order "id"}}-{{end}}id!{{.offset}}!{{.query}}">Id</a></th>

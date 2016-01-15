@@ -21,6 +21,14 @@
 	<br>
 	</div>
 	<table border="1" style="width:600px">
+	
+	<tr>
+	<th style="width:100px"><a href="http://{{.domainname}}/manage/{{if eq .order "id"}}-{{end}}id!{{.offset}}!{{.query}}">Id</a></th>
+	<th style="width:100px"><a href="http://{{.domainname}}/manage/{{if eq .order "first"}}-{{end}}first!{{.offset}}!{{.query}}">Nome</a></th>
+	<th style="width:100px"><a href="http://{{.domainname}}/manage/{{if eq .order "last"}}-{{end}}last!{{.offset}}!{{.query}}">Cognome</a></th>
+	<th style="width:100px"><a href="http://{{.domainname}}/manage/{{if eq .order "email"}}-{{end}}email!{{.offset}}!{{.query}}">Email</a></th>
+	<th style="width:100px">Modifica</th>
+	</tr>
 	{{.Rows}}
 	</table>
 	{{if .ShowNav}}

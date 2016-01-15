@@ -7,6 +7,7 @@
 <meta name="keywords" content="" />
 <meta name="description" content="" />
 <link href="/static/css/default.css" rel="stylesheet" type="text/css" />
+
 </head>
 
 <body>
@@ -26,7 +27,7 @@
 			<ul>
 				<li class="active"><a href="http://{{.domainname}}/home">HOME</a></li>
 				<li><a href="#">AUTOMEZZI</a></li>	
-				{{if .Admin}}<li class="active"><a href="http://{{.domainname}}/manage/">SICUREZZA</a></li>{{end}}
+				{{if .Admin}}<li class="active"><a href="http://{{.domainname}}/manage/id!0!id__gte,0">SICUREZZA</a></li>{{end}}
 				{{if .Admin}}<li class="active"><a href="http://{{.domainname}}/appadmin/index/id!0!id__gte,0">PANNELLO ADMIN</a></li>{{end}}
 			</ul>
 		</div>
