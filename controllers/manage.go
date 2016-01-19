@@ -17,25 +17,6 @@ import (
 
 )
 
-/*var(
-	
-	appcfg_GmailAccount string = beego.AppConfig.String("appcfg_GmailAccount")
-	appcfg_GmailAccountPsw string = beego.AppConfig.String("appcfg_GmailAccountPsw")
-	appcfg_MailHost string = beego.AppConfig.String("appcfg_MailHost")
-	appcfg_MailHostPort, err = beego.AppConfig.Int("appcfg_MailHostPort")
-	domainname  string = beego.AppConfig.String("appcfg_domainname")
-
-)
-
-type User struct {
-    Id   int
-    First string
-	Last string
-	Email string
-	Group int
-	Id_key string
-}*/
-
 func (this *MainController) setCompare(query string) (orm.QuerySeter, bool) {
 	o := orm.NewOrm()
 	qs := o.QueryTable("auth_user")
@@ -184,57 +165,6 @@ func (this *MainController) Manage() {
 		this.Data["ShowNav"] = true
 	}
 	this.Data["progress"] = float64(offset*100) / float64(max(count, 1))
-
-	
-	
-	
-}
-
-func (this *MainController) ManageOLD() {
-// Only administrator can Manage accounts
-	this.activeContent("manage/manage")
-
-	//******** This page requires login
-	sess := this.GetSession("automezzi")
-	if sess == nil {
-		this.Redirect("/home", 302)
-		return
-	} 
-	flash := beego.NewFlash()
-	m := sess.(map[string]interface{})
-    fmt.Println(m["admin"])
-    fmt.Println(reflect.ValueOf(m["admin"]).Type())  
-	if m["admin"] != 3 {
-			flash.Notice("Non hai i diritti per accedere a questa pagina")
-			flash.Store(&this.Controller)
-			this.Redirect("/notice", 302)	
-	}
-	
-    fmt.Printf("hai i diritti")
-	
-	//******** Read users from database
-	o := orm.NewOrm()
-	o.Using("default")
-	var users []User
-
-	num, err := o.Raw("SELECT id, first, last, email, id_key FROM auth_user",).QueryRows(&users)
-	if err != nil {
-		flash.Notice("Errore, contattare l'amministratore del sito")
-		flash.Store(&this.Controller)
-		this.Redirect("/notice", 302)		
-	}
-	
-	fmt.Println("user nums: ", num)
-	for i := range users { 
-		fmt.Println(users[i])
-	}
-	rows := "<tr><center><td>ID</td><td>NOME</td><td>COGNOME</td><td>EMAIL</td><td>MODIFICA</td></center></tr>"
-	for i := range users {
-		rows += fmt.Sprintf("<tr><td>%d</td>"+
-			"<td>%s</td><td>%s</td><td>%s</td><td><center><a href='http://%s/manage/user/%s'>+</a></center></td></tr>", users[i].Id, users[i].First, users[i].Last, users[i].Email, appcfg_domainname, users[i].Id_key)
-	}
-	this.Data["Rows"] = template.HTML(rows)		
-
 }
 
 func (this *MainController) UsersManage() {
@@ -281,56 +211,79 @@ func (this *MainController) UsersManage() {
 		fmt.Println("ERROR:", err)
 	}
 
-	var userlvllist string
-	switch user.Group {
-		case 0:
-		    userlvllist += fmt.Sprintf("<option value=\"0\" selected=\"selected\">Utente</option>"+
-  "<option value=\"1\">Utente Speciale</option>"+
-  "<option value=\"2\">Agente</option>"+
-  "<option value=\"3\">Amministratore</option>")
-		case 1:
-		    userlvllist += fmt.Sprintf("<option value=\"0\">Utente</option>"+
-  "<option value=\"1\" selected=\"selected\">Utente Speciale</option>"+
-  "<option value=\"2\">Agente</option>"+
-  "<option value=\"3\">Amministratore</option>")
-		case 2:
-		    userlvllist += fmt.Sprintf("<option value=\"0\">Utente</option>"+
-  "<option value=\"1\">Utente Speciale</option>"+
-  "<option value=\"2\" selected=\"selected\">Agente</option>"+
-  "<option value=\"3\">Amministratore</option>")
-		case 3:
-		    userlvllist += fmt.Sprintf("<option value=\"0\">Utente</option>"+
-  "<option value=\"1\">Utente Speciale</option>"+
-  "<option value=\"2\">Agente</option>"+
-  "<option value=\"3\" selected=\"selected\">Amministratore</option>")
-		default:
-		    panic("unrecognized escape character")
-		}
+
+	userAPP := models.AuthApp{Id: user.Id}
+	err = o.Read(&userAPP, "Id")
+	if err != nil {
+		flash.Error("Internal error")
+		flash.Store(&this.Controller)
+		return
+	}
 
 
-
-	
-
+	//DOTO UNA VOLTA MODIFICATO NON SI AGGIORNA LA CHECKBOX
 	// this deferred function ensures that the correct fields from the database are displayed
-	defer func(this *MainController, user *models.AuthUser) {
+	defer func(this *MainController, user *models.AuthUser, userAPP *models.AuthApp) {
+		//check the user lvl
+		var userlvllist string
+		switch user.Group {
+			case 0:
+			    userlvllist += fmt.Sprintf("<option value=\"0\" selected=\"selected\">Utente</option>"+
+	  "<option value=\"1\">Utente Speciale</option>"+
+	  "<option value=\"2\">Agente</option>"+
+	  "<option value=\"3\">Amministratore</option>")
+			case 1:
+			    userlvllist += fmt.Sprintf("<option value=\"0\">Utente</option>"+
+	  "<option value=\"1\" selected=\"selected\">Utente Speciale</option>"+
+	  "<option value=\"2\">Agente</option>"+
+	  "<option value=\"3\">Amministratore</option>")
+			case 2:
+			    userlvllist += fmt.Sprintf("<option value=\"0\">Utente</option>"+
+	  "<option value=\"1\">Utente Speciale</option>"+
+	  "<option value=\"2\" selected=\"selected\">Agente</option>"+
+	  "<option value=\"3\">Amministratore</option>")
+			case 3:
+			    userlvllist += fmt.Sprintf("<option value=\"0\">Utente</option>"+
+	  "<option value=\"1\">Utente Speciale</option>"+
+	  "<option value=\"2\">Agente</option>"+
+	  "<option value=\"3\" selected=\"selected\">Amministratore</option>")
+			default:
+			    panic("unrecognized escape character")
+		}
+			//check the app authorization
+		var checkautomezzi, checkservizi string
+		if userAPP.Automezzi {
+			checkautomezzi += fmt.Sprintf("<input type=\"checkbox\" name=\"apps\" value=\"automezzi\" checked=\"checked\"> Automezzi<br>")
+		} else {
+			checkautomezzi += fmt.Sprintf("<input type=\"checkbox\" name=\"apps\" value=\"automezzi\"> Automezzi<br>")
+		}
+		if userAPP.Servizi {
+			checkservizi += fmt.Sprintf("<input type=\"checkbox\" name=\"apps\" value=\"servizi\" checked=\"checked\"> Servizi<br>")
+		} else {
+			checkservizi += fmt.Sprintf("<input type=\"checkbox\" name=\"apps\" value=\"servizi\"> Servizi<br>")
+		}
+		
+		
 		this.Data["UFirst"] = user.First
 		this.Data["ULast"] = user.Last
 		this.Data["UEmail"] = user.Email
 		this.Data["Userlvllist"] = template.HTML(userlvllist)
-	}(this, &user)
+		this.Data["Checkautomezzi"] = template.HTML(checkautomezzi)
+		this.Data["Checkservizi"] = template.HTML(checkservizi)
+	}(this, &user, &userAPP)
 
 	if this.Ctx.Input.Method() == "POST" {
 		first := this.GetString("first")
 		last := this.GetString("last")
 		email := this.GetString("email")
-		//current := this.GetString("current")
 		password := this.GetString("password")
 		password2 := this.GetString("password2")
         userlvl := this.GetString("userlvl")
+		apps := this.GetStrings("apps")
+
 		valid := validation.Validation{}
 		valid.Required(first, "first")
 		valid.Email(email, "email")
-		//valid.Required(current, "current")
 		if valid.HasErrors() {
 			errormap := []string{}
 			for _, err := range valid.Errors {
@@ -375,7 +328,20 @@ func (this *MainController) UsersManage() {
 		user.Last = last
 		user.Email = email
 		user.Last_edit_date = time.Now()
-        user.Group = ConvertInt(userlvl)	
+        user.Group = ConvertInt(userlvl)
+
+	
+		if stringInSlice("automezzi", apps) {
+			userAPP.Automezzi = true
+		} else{
+			userAPP.Automezzi = false
+		}
+		if stringInSlice("servizi", apps) {
+			userAPP.Servizi = true
+		} else{
+			userAPP.Servizi = false
+		}
+		
 		_, err := o.Update(&user)
 		if err != nil {
 			flash.Error("Errore interno")
@@ -383,11 +349,28 @@ func (this *MainController) UsersManage() {
 			return
 		}
 		
+		_, err = o.Update(&userAPP)
+		if err != nil {
+			flash.Error("Errore interno")
+			flash.Store(&this.Controller)
+			return
+		}
+
 		flash.Notice("Profilo aggiornato")
 		flash.Store(&this.Controller)
 		m["username"] = email
 	}		
 
+}
+
+// this funcion check if string is in slice
+func stringInSlice(a string, list []string) bool {
+    for _, b := range list {
+        if b == a {
+            return true
+        }
+    }
+    return false
 }
 
 // this function convert string in int

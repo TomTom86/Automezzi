@@ -6,23 +6,34 @@ import (
 )
 
 type AuthUser struct {
-	Id	int
-	First	string
-	Last	string
+	Id	int  `orm:"auto"`
+	First	string `orm:"size(20)"`
+	Last	string `orm:"size(20)"`
 	Email	string `orm:"unique"`
-	Password	string
+	Password	string `orm:"size(60)"`
 	Is_approved	bool
-	Id_key	string
-	//Reg_key   string
+	Id_key	string `orm:"size(20)"`
 	Reg_date	time.Time `orm:"auto_now_add;type(datetime)"`
 	Last_login_date	time.Time `orm:"auto_now_add;type(datetime)"`
 	Last_edit_date	time.Time `orm:"auto_now_add;type(datetime)"` 
-	Reset_key	string
+	Reset_key	string `orm:"size(20)"`
 	Block_controll	int
 	Group	int
-	Note	string
+	Note	string `orm:"size(100)"`
+	AuthApp *AuthApp `orm:"null;rel(one);on_delete(set_null)"`
 }
 
+
+
+
+type AuthApp struct{
+	Id int
+	Automezzi bool
+	Servizi bool 
+	AuthUser *AuthUser `orm:"reverse(one)"`
+	
+	
+}
 
 /*
 password salt
@@ -37,5 +48,5 @@ comment
 
 */
 func init() {
-	orm.RegisterModel(new(AuthUser))
+	orm.RegisterModel(new(AuthUser),new(AuthApp))
 }

@@ -183,6 +183,8 @@ type user1 struct {
 	Email    string `form:"email" valid:"Email"`
 	Password string `form:"password" valid:"MinSize(6)"`
 	Confirm  string `form:"password2" valid:"Required"`
+	Automezzi bool
+	Servizi bool
 }
 
 func (this *MainController) Register() {
@@ -208,12 +210,17 @@ func (this *MainController) Register() {
 			return
 		}
 		h := pk.HashPassword(u.Password)
-
+		
+		//set app autorization false
+		u.Automezzi = false
+		u.Servizi = false
+		
 		//******** Save user info to database
 		o := orm.NewOrm()
 		o.Using("default")
-
+		
 		user := models.AuthUser{First: u.First, Last: u.Last, Email: u.Email}
+		userAPP := models.AuthApp{Automezzi : u.Automezzi, Servizi: u.Servizi}
 
 		// Convert password hash to string
 		user.Password = hex.EncodeToString(h.Hash) + hex.EncodeToString(h.Salt)
@@ -228,6 +235,12 @@ func (this *MainController) Register() {
 		_, err := o.Insert(&user)
 		if err != nil {
 			flash.Error(u.Email + " gia' registrata")
+			flash.Store(&this.Controller)
+			return
+		}
+		_, err = o.Insert(&userAPP)
+		if err != nil {
+			flash.Error("Errore autorizzazioni applicazioni")
 			flash.Store(&this.Controller)
 			return
 		}

@@ -126,15 +126,16 @@ form {
 	padding: 0;
 }
 
-fieldset {
-	margin: 0;
-	padding: 0;
-	border: none;
-}
+fieldset { border:1px solid #4784cc }
 
 legend {
-	display: none;
-}
+  padding: 0.2em 0.5em;
+  border:1px solid #4784cc;
+  color: #003471;
+  font-size:90%;
+  text-align:left;
+  }
+
 
 input, textarea, select {
 	font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;

@@ -49,10 +49,22 @@
 </tr>
 <tr><td>&nbsp;</td></tr>
 <tr>
+<td>
+    <fieldset>
+    <legend>Strumenti:</legend>
+      {{.Checkautomezzi}}
+      {{.Checkservizi}}
+    </fieldset>
+</td>
+</tr>
+<tr><td>&nbsp;</td></tr>
+<tr>
     <td>&nbsp;</td><td><input type="submit" value="Update" /></td>
 </tr>
 </table>
-<a href="http://localhost:8080/user/remove">Remove account</a>
-<a href="http://localhost:8080/user/manage">Indietro</a>
+<a href="http://{{.domainname}}/user/remove">Remove account</a>
+</br>
+<a href="http://{{.domainname}}/manage/id!0!id__gte,0" >Indietro</a>
+
 </form>
 </div>
