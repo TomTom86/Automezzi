@@ -50,7 +50,7 @@ func (this *MainController) setCompare(query string) (orm.QuerySeter, bool) {
 	return qs, true
 }
 
-
+//TODO ordinare i nomi maiuscolo e minuscolo assieme
 func (this *MainController) Manage() {
 // Only administrator can Manage accounts
 	this.activeContent("manage/manage")
@@ -149,7 +149,9 @@ func (this *MainController) Manage() {
 
 	this.Data["order"] = order
 	this.Data["offset"] = offset
-	this.Data["end"] = max(0, count-pagesize)
+	this.Data["end"] = max(0, (count/pagesize)*pagesize)
+
+	
 	if num+offset < count {
 		this.Data["next"] = num + offset
 	}
@@ -220,8 +222,6 @@ func (this *MainController) UsersManage() {
 		return
 	}
 
-
-	//DOTO UNA VOLTA MODIFICATO NON SI AGGIORNA LA CHECKBOX
 	// this deferred function ensures that the correct fields from the database are displayed
 	defer func(this *MainController, user *models.AuthUser, userAPP *models.AuthApp) {
 		//check the user lvl

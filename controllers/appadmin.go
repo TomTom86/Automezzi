@@ -156,7 +156,7 @@ func (this *AdminController) Index() {
 
 	this.Data["order"] = order
 	this.Data["offset"] = offset
-	this.Data["end"] = max(0, count-pagesize)
+	this.Data["end"] = max(0, (count/pagesize)*pagesize)
 	if num+offset < count {
 		this.Data["next"] = num + offset
 	}
