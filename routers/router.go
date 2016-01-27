@@ -18,6 +18,7 @@ func init() {
 	beego.Router("/user/reset/:uuid", &controllers.MainController{}, "get,post:Reset")
 	beego.Router("/notice", &controllers.MainController{}, "get:Notice")
 	beego.Router("/manage/:parms", &controllers.MainController{}, "get,post:Manage")
+	beego.Router("/test/:parms", &controllers.MainController{}, "get,post:Test")
 	//beego.Router("/manage/", &controllers.MainController{}, "get,post:Manage")
 	beego.Router("/appadmin/index/:parms", &controllers.AdminController{}, "get,post:Index")
 	beego.Router("/appadmin/add/:parms", &controllers.AdminController{}, "get,post:Add")

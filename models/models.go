@@ -20,7 +20,7 @@ type AuthUser struct {
 	Block_controll	int
 	Group	int
 	Note	string `orm:"size(100)"`
-	AuthApp *AuthApp `orm:"null;rel(one);on_delete(set_null)"`
+	AuthApp *AuthApp `orm:"rel(one)"`
 }
 
 

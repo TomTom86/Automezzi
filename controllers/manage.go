@@ -17,6 +17,9 @@ import (
 
 )
 
+//TODO: SE MODIFICO UN UTENTE AUTOMATICAMENTE ANDANDO SU PROFILE VIENE CARICATO L'ULTIMO UTENTE AGGIORANTO E NON IL MIO
+
+
 func (this *MainController) setCompare(query string) (orm.QuerySeter, bool) {
 	o := orm.NewOrm()
 	qs := o.QueryTable("auth_user")
@@ -80,14 +83,15 @@ func (this *MainController) Manage() {
 			this.Redirect("/home", 302)
 		}
 	}(this)
-	
+	//NON VA SENZA PARAMETRI
 	//******** Read users from database
 	if this.Ctx.Input.Param(":parms") == ""{
 		o := orm.NewOrm()
 		o.Using("default")
-		var users []User
+		var users []models.AuthUser
 		
-		num, err := o.Raw("SELECT id, first, last, email, id_key FROM auth_user",).QueryRows(&users)
+		o.QueryTable("auth_user")
+		//num, err := o.Raw("SELECT id, first, last, email, id_key FROM auth_user",).QueryRows(&users)
 		if err != nil {
 			flash.Notice("Errore, contattare l'amministratore del sito")
 			flash.Store(&this.Controller)
@@ -101,7 +105,7 @@ func (this *MainController) Manage() {
 		rows := "<tr><center><td>ID</td><td>NOME</td><td>COGNOME</td><td>EMAIL</td><td>MODIFICA</td></center></tr>"
 		for i := range users {
 			rows += fmt.Sprintf("<tr><td>%d</td>"+
-				"<td>%s</td><td>%s</td><td>%s</td><td><center><a href='http://%s/manage/user/%s'>+</a></center></td></tr>", users[i].Id, users[i].First, users[i].Last, users[i].Email, appcfg_domainname, users[i].Id_key)
+				"<td>%s</td><td>%s</td><td>%s</td><td><center><a href='http://%s/manage/user/%s' class=\"user\"> </a></center></td></tr>", users[i].Id, users[i].First, users[i].Last, users[i].Email, appcfg_domainname, users[i].Id_key)
 		}
 		this.Data["Rows"] = template.HTML(rows)		
 	}
@@ -143,7 +147,7 @@ func (this *MainController) Manage() {
 	//rows := "<tr><center><td>ID</td><td>NOME</td><td>COGNOME</td><td>EMAIL</td><td>MODIFICA</td></center></tr>"
 	for i := range users {
 			rows += fmt.Sprintf("<tr><td>%d</td>"+
-				"<td>%s</td><td>%s</td><td>%s</td><td><center><a href='http://%s/manage/user/%s'>+</a></center></td></tr>", users[i].Id, users[i].First, users[i].Last, users[i].Email, appcfg_domainname, users[i].Id_key)
+				"<td>%s</td><td>%s</td><td>%s</td><td><center><a href='http://%s/manage/user/%s' class=\"user\"> </a></center></td></tr>", users[i].Id, users[i].First, users[i].Last, users[i].Email, appcfg_domainname, users[i].Id_key)
 	}
 	this.Data["Rows"] = template.HTML(rows)
 

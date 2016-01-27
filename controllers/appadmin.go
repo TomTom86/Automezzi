@@ -217,14 +217,14 @@ func (this *AdminController) Add() {
 		//******** Save user info to database
 		o := orm.NewOrm()
 		o.Using("default")
-
+		/*
 		// Convert password hash to string
 		u.Password = hex.EncodeToString(h.Hash) + hex.EncodeToString(h.Salt)
-		
 		// Add user to database with new uuid
 		key := uuid.NewV4()
 		u.Id_key = key.String()
 		u.Is_approved = false
+		
 		user := models.AuthUser{First: u.First, Last: u.Last, Email: u.Email, Password: u.Password, Id_key: u.Id_key}
 		_, err := o.Insert(&user)
 		this.Data["User"] = u
@@ -233,6 +233,45 @@ func (this *AdminController) Add() {
 			flash.Store(&this.Controller)
 			return
 		}
+		
+		
+		*/
+		//test
+
+		
+		//create user and userApp models	
+		userAPP := models.AuthApp{Automezzi : false, Servizi: false}
+		user := models.AuthUser{First: u.First, Last: u.Last, Email: u.Email,Is_approved : false, Group: 0, AuthApp: &userAPP }
+		
+		// Convert password hash to string
+		user.Password = hex.EncodeToString(h.Hash) + hex.EncodeToString(h.Salt)
+
+		// Add user to database with new uuid and send verification email
+		key := uuid.NewV4()
+		user.Id_key = key.String()
+		//set not verification flag
+		//user.Is_approved = false
+        //user.Group = 0
+		//user.AuthApp = userAPP
+		
+		_, err = o.Insert(&userAPP)
+		if err != nil {
+			flash.Error("Errore autorizzazioni applicazioni")
+			flash.Store(&this.Controller)
+			return
+		}
+
+		_, err := o.Insert(&user)
+		if err != nil {
+			flash.Error(u.Email + " gia' registrata")
+			flash.Store(&this.Controller)
+			return
+		}
+	
+	//endtest
+	
+
+		
 
 		flash.Notice("User added")
 		flash.Store(&this.Controller)

@@ -234,6 +234,12 @@ input, textarea, select {
 	width: 600px;
 }
 
+/* Manage */
+.manage .user {
+	padding: 0 20px 0 18px;
+	background: url(/static/img/img06.gif) no-repeat left center;
+}
+
 /* Post */
 
 .post {

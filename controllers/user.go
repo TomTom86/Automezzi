@@ -23,7 +23,7 @@ var(
 	appcfg_MailHostPort, err = beego.AppConfig.Int("appcfg_MailHostPort")
 
 )
-
+/*
 type User struct {
     Id   int32
     First string
@@ -35,7 +35,7 @@ type User struct {
 	Last_login_date	time.Time
 	Last_edit_date	time.Time 
 }
-
+*/
 
 func (this *MainController) Login() {
 	this.activeContent("user/login")
@@ -73,8 +73,12 @@ func (this *MainController) Login() {
 		o.Using("default")
 		user := models.AuthUser{Email: email}
 		err := o.Read(&user, "Email")
+		if err != nil{
+			flash.Error("Errore - Contattare l'amministratore del sito")
+			flash.Store(&this.Controller)
+			return
 		//check if the account exist and if isn't blocked
-		if err == nil && user.Block_controll < 3 && user.Block_controll >= 0 {
+		} else if user.Block_controll < 3 && user.Block_controll >= 0 {
 			//check if the account is verified
 			if user.Is_approved != true {
 				flash.Error("Account not verified")
@@ -109,7 +113,7 @@ func (this *MainController) Login() {
 				return
 			} else {
 			
-			flash.Error("No such user/email")
+			flash.Error("Account non esiste")
 			flash.Store(&this.Controller)
 			return					
 			}
@@ -132,31 +136,38 @@ func (this *MainController) Login() {
 
 
 		}
-	
+		/*
 		//******** Create session and go back to previous page
-		var users []User
-		num, err := o.Raw("SELECT auth_user.'group', auth_user.'id_key' FROM auth_user WHERE email = ?",email).QueryRows(&users)
-		if err == nil {
-			fmt.Println("Group: ", num)
-			fmt.Println("user group: ", users[0].Group)
-			m := make(map[string]interface{})
-		  	m["first"] = user.First
-		 	m["username"] = email
-		 	m["timestamp"] = time.Now()
-			m["id_key"] = users[0].Id_key
-            // check if userlvl is Administrator
-		 	if users[0].Group == 3 {
-				 m["admin"] = users[0].Group
-			 } else {
-				 m["admin"] = 0
-			 }
-		 	this.SetSession("automezzi", m)
-		 	this.Redirect("/"+back, 302)
+		var users []models.AuthUser{Email:email}
+		//num, err := o.Raw("SELECT auth_user.'group', auth_user.'id_key' FROM auth_user WHERE email = ?",email).QueryRows(&users)
+		
+		err = o.Read(&user, "Id")
+		if err == orm.ErrNoRows {
+		    fmt.Println("No result found.")
+		} else if err == orm.ErrMissPK {
+		    fmt.Println("No primary key found.")
 		} else {
-			flash.Error("Errore - Contattare l'amministratore del sito")
-			flash.Store(&this.Controller)
-			return
+		    fmt.Println(user.Id, user.First)
 		}
+		
+		*/
+		
+		//fmt.Println("Group: ", num)
+		fmt.Println("user group: ", user.Group)
+		m := make(map[string]interface{})
+	  	m["first"] = user.First
+	 	m["username"] = user.Email
+	 	m["timestamp"] = time.Now()
+		m["id_key"] = user.Id_key
+        // check if userlvl is Administrator
+	 	if user.Group == 3 {
+			 m["admin"] = user.Group
+		 } else {
+			 m["admin"] = 0
+		 }
+	 	this.SetSession("automezzi", m)
+	 	this.Redirect("/"+back, 302)
+
 		
 		//******** Update last login date
 		user.Last_login_date = time.Now()
@@ -212,16 +223,17 @@ func (this *MainController) Register() {
 		h := pk.HashPassword(u.Password)
 		
 		//set app autorization false
-		u.Automezzi = false
-		u.Servizi = false
+		//u.Automezzi = false
+		//u.Servizi = false
 		
 		//******** Save user info to database
 		o := orm.NewOrm()
 		o.Using("default")
 		
-		user := models.AuthUser{First: u.First, Last: u.Last, Email: u.Email}
-		userAPP := models.AuthApp{Automezzi : u.Automezzi, Servizi: u.Servizi}
-
+		//create user and userApp models	
+		userAPP := models.AuthApp{Automezzi : false, Servizi: false}
+		user := models.AuthUser{First: u.First, Last: u.Last, Email: u.Email,Is_approved : false, Group: 0, AuthApp: &userAPP }
+		
 		// Convert password hash to string
 		user.Password = hex.EncodeToString(h.Hash) + hex.EncodeToString(h.Salt)
 
@@ -229,8 +241,16 @@ func (this *MainController) Register() {
 		key := uuid.NewV4()
 		user.Id_key = key.String()
 		//set not verification flag
-		user.Is_approved = false
-        user.Group = 0
+		//user.Is_approved = false
+        //user.Group = 0
+		//user.AuthApp = userAPP
+		
+		_, err = o.Insert(&userAPP)
+		if err != nil {
+			flash.Error("Errore autorizzazioni applicazioni")
+			flash.Store(&this.Controller)
+			return
+		}
 
 		_, err := o.Insert(&user)
 		if err != nil {
@@ -238,12 +258,8 @@ func (this *MainController) Register() {
 			flash.Store(&this.Controller)
 			return
 		}
-		_, err = o.Insert(&userAPP)
-		if err != nil {
-			flash.Error("Errore autorizzazioni applicazioni")
-			flash.Store(&this.Controller)
-			return
-		}
+
+		//set verify message
 		link := "http://" + appcfg_domainname + "/user/check/"+ user.Id_key
 		m.Email = u.Email
 		m.Subject = "Verifica account portale automezzi"

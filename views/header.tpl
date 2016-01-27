@@ -26,7 +26,7 @@
 		<div id="menu">
 			<ul>
 				<li class="active"><a href="http://{{.domainname}}/home">HOME</a></li>
-				<li><a href="#">AUTOMEZZI</a></li>	
+				{{if .Automezzi}}<li><a href="http://{{.domainname}}/automezzi">AUTOMEZZI</a></li>{{end}}
 				{{if .Admin}}<li class="active"><a href="http://{{.domainname}}/manage/id!0!id__gte,0">SICUREZZA</a></li>{{end}}
 				{{if .Admin}}<li class="active"><a href="http://{{.domainname}}/appadmin/index/id!0!id__gte,0">PANNELLO ADMIN</a></li>{{end}}
 			</ul>

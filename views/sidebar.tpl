@@ -2,37 +2,17 @@
 	<div id="sidebar">
 		<ul>
 			<li>
-				<h2>categories</h2>
+				<h2>Novità</h2>
 				<ul>
-					<li><a href="#">Fusce dui neque fringilla</a></li>
-					<li><a href="#">Eget tempor eget nonummy</a></li>
-					<li><a href="#">Magna lacus bibendum mauris</a></li>
-					<li><a href="#">Nec metus sed donec</a></li>
-					<li><a href="#">Magna lacus bibendum mauris</a></li>
-					<li><a href="#">Velit semper nisi molestie</a></li>
-					<li><a href="#">Eget tempor eget nonummy</a></li>
+					<li><a href="#">Implementata l'interfaccia utente</a></li>
+					<li><a href="#">Implementata la gestione utenti</a></li>
+					<li><a href="#">Implementati i gruppi</a></li>
+					<li><a href="#">Gestione applicazioni</a></li>
+
 				</ul>
-			<li>
-				<h2>lorem ipsum</h2>
-				<ul>
-					<li><a href="#">Nec metus sed donec</a></li>
-					<li><a href="#">Magna lacus bibendum mauris</a></li>
-					<li><a href="#">Velit semper nisi molestie</a></li>
-					<li><a href="#">Eget tempor eget nonummy</a></li>
-					<li><a href="#">Nec metus sed donec</a></li>
-					<li><a href="#">Magna lacus bibendum mauris</a></li>
-					<li><a href="#">Velit semper nisi molestie</a></li>
-				</ul>
+			
 			</li>
-			</li>
-			<li>
-				<h2>blogroll</h2>
-				<ul>
-					<li><a href="#">Nec metus sed donec</a></li>
-					<li><a href="#">Magna lacus bibendum mauris</a></li>
-					<li><a href="#">Velit semper nisi molestie</a></li>
-				</ul>
-			</li>
+			
 		</ul>
 	</div>
 	<!-- end sidebar -->
