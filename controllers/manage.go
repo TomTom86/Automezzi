@@ -98,7 +98,7 @@ func (this *MainController) Manage() {
 			this.Redirect("/notice", 302)		
 		}
 		
-		fmt.Println("user nums: ", num)
+		//fmt.Println("user nums: ", num)
 		for i := range users { 
 			fmt.Println(users[i])
 		}
@@ -362,7 +362,7 @@ func (this *MainController) UsersManage() {
 
 		flash.Notice("Profilo aggiornato")
 		flash.Store(&this.Controller)
-		m["username"] = email
+		
 	}		
 
 }

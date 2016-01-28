@@ -36,7 +36,7 @@ type User struct {
 	Last_edit_date	time.Time 
 }
 */
-
+//TODO la gestione dei permessi utente non è molto sicura, forse è meglio dividere i permessi in una tabella a parte
 func (this *MainController) Login() {
 	this.activeContent("user/login")
 	sess := this.GetSession("automezzi")
