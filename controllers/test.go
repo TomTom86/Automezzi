@@ -43,7 +43,7 @@ func (this *MainController) Test() {
 	    }
 	}
 	
-	
+	*/
 	
 	err = o.Read(&user, "Id")
 
@@ -52,9 +52,9 @@ func (this *MainController) Test() {
 	} else if err == orm.ErrMissPK {
 	    fmt.Println("No primary key found.")
 	} else {
-	    fmt.Println(user.Id, user.First, user.Automezzi)
+	    fmt.Println(user.Id, user.First)
 	}
-	*/		
+			
 
 	err = o.QueryTable("auth_user").Filter("Id", parms).RelatedSel().One(&user)
 	if err == orm.ErrNoRows {
