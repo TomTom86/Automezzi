@@ -26,11 +26,24 @@ func (this *MainController) Test() {
 	//err := o.Read(&user, "Id_key")
 	
 	
-	parms, err := strconv.Atoi(this.Ctx.Input.Param(":parms"))
+	parms,  err:= strconv.Atoi(this.Ctx.Input.Param(":parms"))
+	if err != nil {
+		fmt.Println(err)
+	}
 	user := models.AuthUser{Id:parms}
 	o := orm.NewOrm()
-	//o.QueryTable("auth_user").Filter("id",parms).RelatedSel().One(user)
-	//err := o.QueryTable(app).Filter("id", parms).One(&app)
+	
+/*	var maps []orm.Params
+	num, err := o.QueryTable("auth_user").Values(&maps, "id", "First", "id_key", "auth_app__automezzi")
+	if err == nil {
+	    fmt.Printf("Result Nums: %d\n", num)
+	    for _, m := range maps {
+	        fmt.Println(m["Id"], m["First"], m["id_key"], m["Auth_App__Automezzi"])
+	    // There is no complicated nesting data in the map
+	    }
+	}
+	
+	
 	
 	err = o.Read(&user, "Id")
 
@@ -39,15 +52,20 @@ func (this *MainController) Test() {
 	} else if err == orm.ErrMissPK {
 	    fmt.Println("No primary key found.")
 	} else {
-	    fmt.Println(user.Id, user.First)
+	    fmt.Println(user.Id, user.First, user.Automezzi)
 	}
-		
-	/*
-	o.QueryTable("auth_user").Filter("Id", parms).RelatedSel().One(user)
-	fmt.Println(user)
-	fmt.Println(user.AuthApp)
-	//fmt.Println(user.AuthApp.Automezzi)
-	*/
+	*/		
+
+	err = o.QueryTable("auth_user").Filter("Id", parms).RelatedSel().One(&user)
+	if err == orm.ErrNoRows {
+	    fmt.Println("No result found.")
+	} else if err == orm.ErrMissPK {
+	    fmt.Println("No primary key found.")
+	} else {
+	    fmt.Println(user)
+		fmt.Println(user.AuthApp.Automezzi)
+	}
+
 	
 	
 	

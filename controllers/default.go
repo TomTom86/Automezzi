@@ -26,7 +26,7 @@ func (this *MainController) activeContent(view string) {
 		this.Data["First"] = m["first"]
 		this.Data["Admin"] = m["admin"]
 		this.Data["ID_key"] = m["id_key"]
-
+		this.Data["Automezzi"] = m["automezzi"]
 	}
 }
 

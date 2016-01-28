@@ -72,11 +72,20 @@ func (this *MainController) Login() {
 		o := orm.NewOrm()
 		o.Using("default")
 		user := models.AuthUser{Email: email}
-		err := o.Read(&user, "Email")
+		err = o.QueryTable("auth_user").Filter("Email", email).RelatedSel().One(&user)
+		if err == orm.ErrNoRows {
+		    fmt.Println("No result found.")
+		} else if err == orm.ErrMissPK {
+		    fmt.Println("No primary key found.")
+
+		/*err := o.Read(&user, "Email")
 		if err != nil{
 			flash.Error("Errore - Contattare l'amministratore del sito")
 			flash.Store(&this.Controller)
 			return
+		}	
+		*/
+		
 		//check if the account exist and if isn't blocked
 		} else if user.Block_controll < 3 && user.Block_controll >= 0 {
 			//check if the account is verified
@@ -136,23 +145,9 @@ func (this *MainController) Login() {
 
 
 		}
-		/*
+		
 		//******** Create session and go back to previous page
-		var users []models.AuthUser{Email:email}
-		//num, err := o.Raw("SELECT auth_user.'group', auth_user.'id_key' FROM auth_user WHERE email = ?",email).QueryRows(&users)
-		
-		err = o.Read(&user, "Id")
-		if err == orm.ErrNoRows {
-		    fmt.Println("No result found.")
-		} else if err == orm.ErrMissPK {
-		    fmt.Println("No primary key found.")
-		} else {
-		    fmt.Println(user.Id, user.First)
-		}
-		
-		*/
-		
-		//fmt.Println("Group: ", num)
+
 		fmt.Println("user group: ", user.Group)
 		m := make(map[string]interface{})
 	  	m["first"] = user.First
@@ -162,9 +157,11 @@ func (this *MainController) Login() {
         // check if userlvl is Administrator
 	 	if user.Group == 3 {
 			 m["admin"] = user.Group
-		 } else {
+		} else {
 			 m["admin"] = 0
-		 }
+		}
+		fmt.Println("Autorizzazione automezzi: ",user.AuthApp.Automezzi)
+		m["automezzi"] = user.AuthApp.Automezzi
 	 	this.SetSession("automezzi", m)
 	 	this.Redirect("/"+back, 302)
 
