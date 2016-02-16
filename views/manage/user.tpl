@@ -35,6 +35,11 @@
     </select>
     </td>
 </tr>
+<tr>
+    <td>Utente Bloccato:</td>
+      {{.Checkbloccato}}
+    </td>
+</tr>
 <tr><td>&nbsp;</td></tr>
 <tr>
 <td>Optional:</td>

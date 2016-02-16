@@ -1,24 +1,20 @@
 package controllers
 
 import (
-	"html/template"
-	"time"
-    "strconv"
-    "reflect"
 	"encoding/hex"
 	"fmt"
+	"html/template"
+	"reflect"
+	"strconv"
 	"strings"
-	
+	"time"
+
 	"automezzi/models"
 	pk "automezzi/utilities/pbkdf2wrapper"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
 	"github.com/astaxie/beego/validation"
-
 )
-
-//TODO: SE MODIFICO UN UTENTE AUTOMATICAMENTE ANDANDO SU PROFILE VIENE CARICATO L'ULTIMO UTENTE AGGIORANTO E NON IL MIO
-
 
 func (this *MainController) setCompare(query string) (orm.QuerySeter, bool) {
 	o := orm.NewOrm()
@@ -55,7 +51,7 @@ func (this *MainController) setCompare(query string) (orm.QuerySeter, bool) {
 
 //TODO ordinare i nomi maiuscolo e minuscolo assieme
 func (this *MainController) Manage() {
-// Only administrator can Manage accounts
+	// Only administrator can Manage accounts
 	this.activeContent("manage/manage")
 
 	//******** This page requires login
@@ -63,19 +59,19 @@ func (this *MainController) Manage() {
 	if sess == nil {
 		this.Redirect("/home", 302)
 		return
-	} 
+	}
 	flash := beego.NewFlash()
 	m := sess.(map[string]interface{})
-    fmt.Println(m["admin"])
-    fmt.Println(reflect.ValueOf(m["admin"]).Type())  
+	fmt.Println(m["admin"])
+	fmt.Println(reflect.ValueOf(m["admin"]).Type())
 	if m["admin"] != 3 {
-			flash.Notice("Non hai i diritti per accedere a questa pagina")
-			flash.Store(&this.Controller)
-			this.Redirect("/notice", 302)	
+		flash.Notice("Non hai i diritti per accedere a questa pagina")
+		flash.Store(&this.Controller)
+		this.Redirect("/notice", 302)
 	}
-	
-    fmt.Printf("hai i diritti")
-	
+
+	fmt.Printf("hai i diritti")
+
 	//in caso di panic reindirizza alla home
 	defer func(this *MainController) {
 		if r := recover(); r != nil {
@@ -85,21 +81,21 @@ func (this *MainController) Manage() {
 	}(this)
 	//NON VA SENZA PARAMETRI
 	//******** Read users from database
-	if this.Ctx.Input.Param(":parms") == ""{
+	if this.Ctx.Input.Param(":parms") == "" {
 		o := orm.NewOrm()
 		o.Using("default")
 		var users []models.AuthUser
-		
+
 		o.QueryTable("auth_user")
 		//num, err := o.Raw("SELECT id, first, last, email, id_key FROM auth_user",).QueryRows(&users)
 		if err != nil {
 			flash.Notice("Errore, contattare l'amministratore del sito")
 			flash.Store(&this.Controller)
-			this.Redirect("/notice", 302)		
+			this.Redirect("/notice", 302)
 		}
-		
+
 		//fmt.Println("user nums: ", num)
-		for i := range users { 
+		for i := range users {
 			fmt.Println(users[i])
 		}
 		rows := "<tr><center><td>ID</td><td>NOME</td><td>COGNOME</td><td>EMAIL</td><td>MODIFICA</td></center></tr>"
@@ -107,7 +103,7 @@ func (this *MainController) Manage() {
 			rows += fmt.Sprintf("<tr><td>%d</td>"+
 				"<td>%s</td><td>%s</td><td>%s</td><td><center><a href='http://%s/manage/user/%s' class=\"user\"> </a></center></td></tr>", users[i].Id, users[i].First, users[i].Last, users[i].Email, appcfg_domainname, users[i].Id_key)
 		}
-		this.Data["Rows"] = template.HTML(rows)		
+		this.Data["Rows"] = template.HTML(rows)
 	}
 	const pagesize = 10
 	parms := this.Ctx.Input.Param(":parms")
@@ -146,8 +142,8 @@ func (this *MainController) Manage() {
 	//domainname := this.Data["domainname"]
 	//rows := "<tr><center><td>ID</td><td>NOME</td><td>COGNOME</td><td>EMAIL</td><td>MODIFICA</td></center></tr>"
 	for i := range users {
-			rows += fmt.Sprintf("<tr><td>%d</td>"+
-				"<td>%s</td><td>%s</td><td>%s</td><td><center><a href='http://%s/manage/user/%s' class=\"user\"> </a></center></td></tr>", users[i].Id, users[i].First, users[i].Last, users[i].Email, appcfg_domainname, users[i].Id_key)
+		rows += fmt.Sprintf("<tr><td>%d</td>"+
+			"<td>%s</td><td>%s</td><td>%s</td><td><center><a href='http://%s/manage/user/%s' class=\"user\"> </a></center></td></tr>", users[i].Id, users[i].First, users[i].Last, users[i].Email, appcfg_domainname, users[i].Id_key)
 	}
 	this.Data["Rows"] = template.HTML(rows)
 
@@ -155,7 +151,6 @@ func (this *MainController) Manage() {
 	this.Data["offset"] = offset
 	this.Data["end"] = max(0, (count/pagesize)*pagesize)
 
-	
 	if num+offset < count {
 		this.Data["next"] = num + offset
 	}
@@ -182,16 +177,16 @@ func (this *MainController) UsersManage() {
 		this.Redirect("/user/login/home", 302)
 		return
 	}
-		
+
 	m := sess.(map[string]interface{})
 	flash := beego.NewFlash()
 	if m["admin"] != 3 {
-	    this.Redirect("/home", 302)
+		this.Redirect("/home", 302)
 		flash.Error("Non disponi dei privilegi necessari")
 		flash.Store(&this.Controller)
-        return	
+		return
 	}
-	
+
 	var x pk.PasswordHash
 
 	x.Hash = make([]byte, 32)
@@ -217,7 +212,6 @@ func (this *MainController) UsersManage() {
 		fmt.Println("ERROR:", err)
 	}
 
-
 	userAPP := models.AuthApp{Id: user.Id}
 	err = o.Read(&userAPP, "Id")
 	if err != nil {
@@ -231,30 +225,41 @@ func (this *MainController) UsersManage() {
 		//check the user lvl
 		var userlvllist string
 		switch user.Group {
-			case 0:
-			    userlvllist += fmt.Sprintf("<option value=\"0\" selected=\"selected\">Utente</option>"+
-	  "<option value=\"1\">Utente Speciale</option>"+
-	  "<option value=\"2\">Agente</option>"+
-	  "<option value=\"3\">Amministratore</option>")
-			case 1:
-			    userlvllist += fmt.Sprintf("<option value=\"0\">Utente</option>"+
-	  "<option value=\"1\" selected=\"selected\">Utente Speciale</option>"+
-	  "<option value=\"2\">Agente</option>"+
-	  "<option value=\"3\">Amministratore</option>")
-			case 2:
-			    userlvllist += fmt.Sprintf("<option value=\"0\">Utente</option>"+
-	  "<option value=\"1\">Utente Speciale</option>"+
-	  "<option value=\"2\" selected=\"selected\">Agente</option>"+
-	  "<option value=\"3\">Amministratore</option>")
-			case 3:
-			    userlvllist += fmt.Sprintf("<option value=\"0\">Utente</option>"+
-	  "<option value=\"1\">Utente Speciale</option>"+
-	  "<option value=\"2\">Agente</option>"+
-	  "<option value=\"3\" selected=\"selected\">Amministratore</option>")
-			default:
-			    panic("unrecognized escape character")
+		case 0:
+			userlvllist += fmt.Sprintf("<option value=\"0\" selected=\"selected\">Utente</option>" +
+				"<option value=\"1\">Utente Speciale</option>" +
+				"<option value=\"2\">Agente</option>" +
+				"<option value=\"3\">Amministratore</option>")
+		case 1:
+			userlvllist += fmt.Sprintf("<option value=\"0\">Utente</option>" +
+				"<option value=\"1\" selected=\"selected\">Utente Speciale</option>" +
+				"<option value=\"2\">Agente</option>" +
+				"<option value=\"3\">Amministratore</option>")
+		case 2:
+			userlvllist += fmt.Sprintf("<option value=\"0\">Utente</option>" +
+				"<option value=\"1\">Utente Speciale</option>" +
+				"<option value=\"2\" selected=\"selected\">Agente</option>" +
+				"<option value=\"3\">Amministratore</option>")
+		case 3:
+			userlvllist += fmt.Sprintf("<option value=\"0\">Utente</option>" +
+				"<option value=\"1\">Utente Speciale</option>" +
+				"<option value=\"2\">Agente</option>" +
+				"<option value=\"3\" selected=\"selected\">Amministratore</option>")
+		default:
+			panic("unrecognized escape character")
 		}
-			//check the app authorization
+
+		fmt.Println(user.Block_controll)
+		var checkbloccato string
+		if user.Block_controll >= 3 {
+			checkbloccato += fmt.Sprintf("<td><input type=\"checkbox\" name=\"blocco\" value=\"bloccato\" checked=\"checked\"> BLOCCATO<br></td>")
+			//<td><input type="checkbox" name="apps" value="bloccato"> BLOCCATO<br></td>
+		} else {
+			checkbloccato += fmt.Sprintf("<td><input type=\"checkbox\" name=\"blocco\" value=\"bloccato\"> BLOCCATO<br></td>")
+
+		}
+
+		//check the app authorization
 		var checkautomezzi, checkservizi string
 		if userAPP.Automezzi {
 			checkautomezzi += fmt.Sprintf("<input type=\"checkbox\" name=\"apps\" value=\"automezzi\" checked=\"checked\"> Automezzi<br>")
@@ -266,12 +271,12 @@ func (this *MainController) UsersManage() {
 		} else {
 			checkservizi += fmt.Sprintf("<input type=\"checkbox\" name=\"apps\" value=\"servizi\"> Servizi<br>")
 		}
-		
-		
+
 		this.Data["UFirst"] = user.First
 		this.Data["ULast"] = user.Last
 		this.Data["UEmail"] = user.Email
 		this.Data["Userlvllist"] = template.HTML(userlvllist)
+		this.Data["Checkbloccato"] = template.HTML(checkbloccato)
 		this.Data["Checkautomezzi"] = template.HTML(checkautomezzi)
 		this.Data["Checkservizi"] = template.HTML(checkservizi)
 	}(this, &user, &userAPP)
@@ -282,8 +287,9 @@ func (this *MainController) UsersManage() {
 		email := this.GetString("email")
 		password := this.GetString("password")
 		password2 := this.GetString("password2")
-        userlvl := this.GetString("userlvl")
+		userlvl := this.GetString("userlvl")
 		apps := this.GetStrings("apps")
+		blocco := this.GetStrings("blocco")
 
 		valid := validation.Validation{}
 		valid.Required(first, "first")
@@ -332,27 +338,31 @@ func (this *MainController) UsersManage() {
 		user.Last = last
 		user.Email = email
 		user.Last_edit_date = time.Now()
-        user.Group = ConvertInt(userlvl)
+		user.Group = ConvertInt(userlvl)
 
-	
+		if stringInSlice("bloccato", blocco) {
+			user.Block_controll = 3
+		} else {
+			user.Block_controll = 0
+		}
 		if stringInSlice("automezzi", apps) {
 			userAPP.Automezzi = true
-		} else{
+		} else {
 			userAPP.Automezzi = false
 		}
 		if stringInSlice("servizi", apps) {
 			userAPP.Servizi = true
-		} else{
+		} else {
 			userAPP.Servizi = false
 		}
-		
+
 		_, err := o.Update(&user)
 		if err != nil {
 			flash.Error("Errore interno")
 			flash.Store(&this.Controller)
 			return
 		}
-		
+
 		_, err = o.Update(&userAPP)
 		if err != nil {
 			flash.Error("Errore interno")
@@ -362,27 +372,27 @@ func (this *MainController) UsersManage() {
 
 		flash.Notice("Profilo aggiornato")
 		flash.Store(&this.Controller)
-		
-	}		
+
+	}
 
 }
 
 // this funcion check if string is in slice
 func stringInSlice(a string, list []string) bool {
-    for _, b := range list {
-        if b == a {
-            return true
-        }
-    }
-    return false
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
 }
 
 // this function convert string in int
 func ConvertInt(s string) int {
-    //convert string in int
-    i, err := strconv.Atoi(s)
+	//convert string in int
+	i, err := strconv.Atoi(s)
 	if err != nil {
- 	   panic(err)
+		panic(err)
 	}
 	return i
 }

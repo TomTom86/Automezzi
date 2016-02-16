@@ -13,7 +13,7 @@ import (
 	"strconv"
 	"strings"
 	//"time"
-    "reflect"
+	"reflect"
 )
 
 type AdminController struct {
@@ -27,7 +27,7 @@ func (this *AdminController) activeAdminContent(view string) {
 	this.LayoutSections["Footer"] = "footer.tpl"
 	this.TplNames = view + ".tpl"
 	this.Data["domainname"] = "localhost:8080"
-	
+
 	sess := this.GetSession("automezzi")
 	if sess != nil {
 		this.Data["InSession"] = 1 // for login bar in header.tpl
@@ -86,23 +86,23 @@ func max(a, b int64) int64 {
 
 func (this *AdminController) Index() {
 	this.activeAdminContent("appadmin/index")
-	
+
 	sess := this.GetSession("automezzi")
 	if sess == nil {
 		this.Redirect("/home", 302)
 		return
-	} 
+	}
 	flash := beego.NewFlash()
 	m := sess.(map[string]interface{})
-    fmt.Println(m["admin"])
-    fmt.Println(reflect.ValueOf(m["admin"]).Type())  
+	fmt.Println(m["admin"])
+	fmt.Println(reflect.ValueOf(m["admin"]).Type())
 	if m["admin"] != 3 {
 		flash.Notice("Non hai i diritti per accedere a questa pagina")
 		flash.Store(&this.Controller)
-		this.Redirect("/notice", 302)	
+		this.Redirect("/notice", 302)
 	}
-    fmt.Printf("hai i diritti")
-	
+	fmt.Printf("hai i diritti")
+
 	defer func(this *AdminController) {
 		if r := recover(); r != nil {
 			fmt.Println("Recovered in Index", r)
@@ -177,22 +177,22 @@ func (this *AdminController) Index() {
 
 func (this *AdminController) Add() {
 	this.activeAdminContent("appadmin/add")
-	
+
 	sess := this.GetSession("automezzi")
 	if sess == nil {
 		this.Redirect("/home", 302)
 		return
-	} 
+	}
 	flash := beego.NewFlash()
 	m := sess.(map[string]interface{})
-    fmt.Println(m["admin"])
-    fmt.Println(reflect.ValueOf(m["admin"]).Type())  
+	fmt.Println(m["admin"])
+	fmt.Println(reflect.ValueOf(m["admin"]).Type())
 	if m["admin"] != 3 {
 		flash.Notice("Non hai i diritti per accedere a questa pagina")
 		flash.Store(&this.Controller)
-		this.Redirect("/notice", 302)	
+		this.Redirect("/notice", 302)
 	}
-    fmt.Printf("hai i diritti")
+	fmt.Printf("hai i diritti")
 	parms := this.Ctx.Input.Param(":parms")
 	fmt.Println(parms)
 	this.Data["parms"] = parms
@@ -200,7 +200,7 @@ func (this *AdminController) Add() {
 	if this.Ctx.Input.Method() == "POST" {
 
 		u := authUser{}
-		
+
 		if err := this.ParseForm(&u); err != nil {
 			fmt.Println("cannot parse form")
 			return
@@ -217,18 +217,18 @@ func (this *AdminController) Add() {
 		//******** Save user info to database
 		o := orm.NewOrm()
 		o.Using("default")
-				
-		//create user and userApp models	
-		userAPP := models.AuthApp{Automezzi : false, Servizi: false}
-		user := models.AuthUser{First: u.First, Last: u.Last, Email: u.Email,Is_approved : false, Group: 0, AuthApp: &userAPP }
-		
+
+		//create user and userApp models
+		userAPP := models.AuthApp{Automezzi: false, Servizi: false}
+		user := models.AuthUser{First: u.First, Last: u.Last, Email: u.Email, Is_approved: false, Group: 0, AuthApp: &userAPP}
+
 		// Convert password hash to string
 		user.Password = hex.EncodeToString(h.Hash) + hex.EncodeToString(h.Salt)
 
 		// Add user to database with new uuid and send verification email
 		key := uuid.NewV4()
 		user.Id_key = key.String()
-		
+
 		_, err = o.Insert(&userAPP)
 		if err != nil {
 			flash.Error("Errore autorizzazioni applicazioni")
@@ -242,7 +242,7 @@ func (this *AdminController) Add() {
 			flash.Store(&this.Controller)
 			return
 		}
-	
+
 		flash.Notice("User added")
 		flash.Store(&this.Controller)
 	}
@@ -250,16 +250,16 @@ func (this *AdminController) Add() {
 }
 
 type authUser struct {
-	Id        int    `form:"id"`
-	First     string `form:"first" valid:"Required"`
-	Last      string `form:"last"`
-	Email     string `form:"email" valid:"Email"`
-	Password  string `form:"password" valid:"MinSize(6)"`
-	Id_key   string `form:"id_key"`
+	Id          int    `form:"id"`
+	First       string `form:"first" valid:"Required"`
+	Last        string `form:"last"`
+	Email       string `form:"email" valid:"Email"`
+	Password    string `form:"password" valid:"MinSize(6)"`
+	Id_key      string `form:"id_key"`
 	Is_approved bool
-	Reg_date  string `form:"reg_date"` // ParseForm cannot deal with time.Time in the form definition
-	Reset_key string `form:"reset_key"`
-	Delete    string `form:"delete,checkbox"`
+	Reg_date    string `form:"reg_date"` // ParseForm cannot deal with time.Time in the form definition
+	Reset_key   string `form:"reset_key"`
+	Delete      string `form:"delete,checkbox"`
 }
 
 func (this *AdminController) Update() {
@@ -269,18 +269,18 @@ func (this *AdminController) Update() {
 	if sess == nil {
 		this.Redirect("/home", 302)
 		return
-	} 
+	}
 	flash := beego.NewFlash()
 	m := sess.(map[string]interface{})
-    fmt.Println(m["admin"])
-    fmt.Println(reflect.ValueOf(m["admin"]).Type())  
+	fmt.Println(m["admin"])
+	fmt.Println(reflect.ValueOf(m["admin"]).Type())
 	//check if you are admin
 	if m["admin"] != 3 {
 		flash.Notice("Non hai i diritti per accedere a questa pagina")
 		flash.Store(&this.Controller)
-		this.Redirect("/notice", 302)	
+		this.Redirect("/notice", 302)
 	}
-    fmt.Printf("hai i diritti")
+	fmt.Printf("hai i diritti")
 	defer func(this *AdminController) {
 		if r := recover(); r != nil {
 			fmt.Println("Recovered in Update", r)
