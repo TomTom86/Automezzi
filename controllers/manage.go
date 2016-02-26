@@ -9,25 +9,25 @@ import (
 	"strings"
 	"time"
 
+	pk "acme3/utilities/pbkdf2"
 	"automezzi/models"
-	pk "automezzi/utilities/pbkdf2wrapper"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
 	"github.com/astaxie/beego/validation"
 )
 
-func (this *MainController) setCompare(query string) (orm.QuerySeter, bool) {
+func (c *MainController) setCompare(query string) (orm.QuerySeter, bool) {
 	o := orm.NewOrm()
 	qs := o.QueryTable("auth_user")
-	if this.Ctx.Input.Method() == "POST" {
+	if c.Ctx.Input.Method() == "POST" {
 		f := compareform{}
-		if err := this.ParseForm(&f); err != nil {
+		if err := c.ParseForm(&f); err != nil {
 			fmt.Println("cannot parse form")
 			return qs, false
 		}
 		valid := validation.Validation{}
 		if b, _ := valid.Valid(&f); !b {
-			this.Data["Errors"] = valid.ErrorsMap
+			c.Data["Errors"] = valid.ErrorsMap
 			return qs, false
 		}
 		if len(f.Compareop) >= 5 && f.Compareop[:5] == "__not" {
@@ -35,7 +35,7 @@ func (this *MainController) setCompare(query string) (orm.QuerySeter, bool) {
 		} else {
 			qs = qs.Filter(f.Comparefield+f.Compareop, f.Compareval)
 		}
-		this.Data["query"] = f.Comparefield + f.Compareop + "," + f.Compareval
+		c.Data["query"] = f.Comparefield + f.Compareop + "," + f.Compareval
 	} else {
 		str := strings.Split(query, ",")
 		i := strings.Index(str[0], "__")
@@ -44,20 +44,21 @@ func (this *MainController) setCompare(query string) (orm.QuerySeter, bool) {
 		} else {
 			qs = qs.Filter(str[0], str[1])
 		}
-		this.Data["query"] = query
+		c.Data["query"] = query
 	}
 	return qs, true
 }
 
+//Manage help administrator to manage all accounts
 //TODO ordinare i nomi maiuscolo e minuscolo assieme
-func (this *MainController) Manage() {
+func (c *MainController) Manage() {
 	// Only administrator can Manage accounts
-	this.activeContent("manage/manage")
+	c.activeContent("manage/manage")
 
-	//******** This page requires login
-	sess := this.GetSession("automezzi")
+	//******** c page requires login
+	sess := c.GetSession("automezzi")
 	if sess == nil {
-		this.Redirect("/home", 302)
+		c.Redirect("/home", 302)
 		return
 	}
 	flash := beego.NewFlash()
@@ -66,22 +67,22 @@ func (this *MainController) Manage() {
 	fmt.Println(reflect.ValueOf(m["admin"]).Type())
 	if m["admin"] != 3 {
 		flash.Notice("Non hai i diritti per accedere a questa pagina")
-		flash.Store(&this.Controller)
-		this.Redirect("/notice", 302)
+		flash.Store(&c.Controller)
+		c.Redirect("/notice", 302)
 	}
 
 	fmt.Printf("hai i diritti")
 
 	//in caso di panic reindirizza alla home
-	defer func(this *MainController) {
+	defer func(c *MainController) {
 		if r := recover(); r != nil {
 			fmt.Println("Recovered in Index", r)
-			this.Redirect("/home", 302)
+			c.Redirect("/home", 302)
 		}
-	}(this)
+	}(c)
 	//NON VA SENZA PARAMETRI
 	//******** Read users from database
-	if this.Ctx.Input.Param(":parms") == "" {
+	if c.Ctx.Input.Param(":parms") == "" {
 		o := orm.NewOrm()
 		o.Using("default")
 		var users []models.AuthUser
@@ -90,8 +91,8 @@ func (this *MainController) Manage() {
 		//num, err := o.Raw("SELECT id, first, last, email, id_key FROM auth_user",).QueryRows(&users)
 		if err != nil {
 			flash.Notice("Errore, contattare l'amministratore del sito")
-			flash.Store(&this.Controller)
-			this.Redirect("/notice", 302)
+			flash.Store(&c.Controller)
+			c.Redirect("/notice", 302)
 		}
 
 		//fmt.Println("user nums: ", num)
@@ -101,13 +102,13 @@ func (this *MainController) Manage() {
 		rows := "<tr><center><td>ID</td><td>NOME</td><td>COGNOME</td><td>EMAIL</td><td>MODIFICA</td></center></tr>"
 		for i := range users {
 			rows += fmt.Sprintf("<tr><td>%d</td>"+
-				"<td>%s</td><td>%s</td><td>%s</td><td><center><a href='http://%s/manage/user/%s' class=\"user\"> </a></center></td></tr>", users[i].Id, users[i].First, users[i].Last, users[i].Email, appcfg_domainname, users[i].Id_key)
+				"<td>%s</td><td>%s</td><td>%s</td><td><center><a href='http://%s/manage/user/%s' class=\"user\"> </a></center></td></tr>", users[i].Id, users[i].First, users[i].Last, users[i].Email, appcfgdomainname, users[i].Id_key)
 		}
-		this.Data["Rows"] = template.HTML(rows)
+		c.Data["Rows"] = template.HTML(rows)
 	}
 	const pagesize = 10
-	parms := this.Ctx.Input.Param(":parms")
-	this.Data["parms"] = parms
+	parms := c.Ctx.Input.Param(":parms")
+	c.Data["parms"] = parms
 	str := strings.Split(parms, "!")
 	fmt.Println("parms is", str)
 	order := str[0]
@@ -121,17 +122,17 @@ func (this *MainController) Manage() {
 	var users []*models.AuthUser
 	rows := ""
 
-	qs, ok := this.setCompare(query)
+	qs, ok := c.setCompare(query)
 	if !ok {
 		fmt.Println("cannot set QuerySeter")
 		o := orm.NewOrm()
 		qs := o.QueryTable("auth_user")
 		qs = qs.Filter("id__gte", 0)
-		this.Data["query"] = "id__gte,0"
+		c.Data["query"] = "id__gte,0"
 	}
 
 	count, _ := qs.Count()
-	this.Data["count"] = count
+	c.Data["count"] = count
 	if offset >= count {
 		offset = 0
 	}
@@ -139,51 +140,51 @@ func (this *MainController) Manage() {
 	if err != nil {
 		fmt.Println("Query table failed:", err)
 	}
-	//domainname := this.Data["domainname"]
-	//rows := "<tr><center><td>ID</td><td>NOME</td><td>COGNOME</td><td>EMAIL</td><td>MODIFICA</td></center></tr>"
 	for i := range users {
 		rows += fmt.Sprintf("<tr><td>%d</td>"+
-			"<td>%s</td><td>%s</td><td>%s</td><td><center><a href='http://%s/manage/user/%s' class=\"user\"> </a></center></td></tr>", users[i].Id, users[i].First, users[i].Last, users[i].Email, appcfg_domainname, users[i].Id_key)
+			"<td>%s</td><td>%s</td><td>%s</td><td><center><a href='http://%s/manage/user/%s' class=\"user\"> </a></center></td></tr>", users[i].Id, users[i].First, users[i].Last, users[i].Email, appcfgdomainname, users[i].Id_key)
 	}
-	this.Data["Rows"] = template.HTML(rows)
+	c.Data["Rows"] = template.HTML(rows)
 
-	this.Data["order"] = order
-	this.Data["offset"] = offset
-	this.Data["end"] = max(0, (count/pagesize)*pagesize)
+	c.Data["order"] = order
+	c.Data["offset"] = offset
+	c.Data["end"] = max(0, (count/pagesize)*pagesize)
 
 	if num+offset < count {
-		this.Data["next"] = num + offset
+		c.Data["next"] = num + offset
 	}
 	if offset-pagesize >= 0 {
-		this.Data["prev"] = offset - pagesize
-		this.Data["showprev"] = true
+		c.Data["prev"] = offset - pagesize
+		c.Data["showprev"] = true
 	} else if offset > 0 && offset < pagesize {
-		this.Data["prev"] = 0
-		this.Data["showprev"] = true
+		c.Data["prev"] = 0
+		c.Data["showprev"] = true
 	}
 
 	if count > pagesize {
-		this.Data["ShowNav"] = true
+		c.Data["ShowNav"] = true
 	}
-	this.Data["progress"] = float64(offset*100) / float64(max(count, 1))
+	c.Data["progress"] = float64(offset*100) / float64(max(count, 1))
 }
 
-func (this *MainController) UsersManage() {
-	this.activeContent("manage/user")
+//UsersManage is for edit accounts by administrator
+//TODO quando ritorna al manage lo fa nella pagina 1 e non in quella in cui si trovava l'utente
+func (c *MainController) UsersManage() {
+	c.activeContent("manage/user")
 
-	//******** This page requires login
-	sess := this.GetSession("automezzi")
+	//******** c page requires login
+	sess := c.GetSession("automezzi")
 	if sess == nil {
-		this.Redirect("/user/login/home", 302)
+		c.Redirect("/user/login/home", 302)
 		return
 	}
 
 	m := sess.(map[string]interface{})
 	flash := beego.NewFlash()
 	if m["admin"] != 3 {
-		this.Redirect("/home", 302)
+		c.Redirect("/home", 302)
 		flash.Error("Non disponi dei privilegi necessari")
-		flash.Store(&this.Controller)
+		flash.Store(&c.Controller)
 		return
 	}
 
@@ -194,14 +195,14 @@ func (this *MainController) UsersManage() {
 
 	o := orm.NewOrm()
 	o.Using("default")
-	var id_key string
-	id_key = this.Ctx.Input.Param(":parms")
-	fmt.Println("key: ", id_key)
-	user := models.AuthUser{Id_key: this.Ctx.Input.Param(":parms")}
+	var idKey string
+	idKey = c.Ctx.Input.Param(":parms")
+	fmt.Println("key: ", idKey)
+	user := models.AuthUser{Id_key: c.Ctx.Input.Param(":parms")}
 	err := o.Read(&user, "Id_key")
 	if err != nil {
 		flash.Error("Internal error")
-		flash.Store(&this.Controller)
+		flash.Store(&c.Controller)
 		return
 	}
 	// scan in the password hash/salt
@@ -216,12 +217,12 @@ func (this *MainController) UsersManage() {
 	err = o.Read(&userAPP, "Id")
 	if err != nil {
 		flash.Error("Internal error")
-		flash.Store(&this.Controller)
+		flash.Store(&c.Controller)
 		return
 	}
 
-	// this deferred function ensures that the correct fields from the database are displayed
-	defer func(this *MainController, user *models.AuthUser, userAPP *models.AuthApp) {
+	// c deferred function ensures that the correct fields from the database are displayed
+	defer func(c *MainController, user *models.AuthUser, userAPP *models.AuthApp) {
 		//check the user lvl
 		var userlvllist string
 		switch user.Group {
@@ -272,24 +273,24 @@ func (this *MainController) UsersManage() {
 			checkservizi += fmt.Sprintf("<input type=\"checkbox\" name=\"apps\" value=\"servizi\"> Servizi<br>")
 		}
 
-		this.Data["UFirst"] = user.First
-		this.Data["ULast"] = user.Last
-		this.Data["UEmail"] = user.Email
-		this.Data["Userlvllist"] = template.HTML(userlvllist)
-		this.Data["Checkbloccato"] = template.HTML(checkbloccato)
-		this.Data["Checkautomezzi"] = template.HTML(checkautomezzi)
-		this.Data["Checkservizi"] = template.HTML(checkservizi)
-	}(this, &user, &userAPP)
+		c.Data["UFirst"] = user.First
+		c.Data["ULast"] = user.Last
+		c.Data["UEmail"] = user.Email
+		c.Data["Userlvllist"] = template.HTML(userlvllist)
+		c.Data["Checkbloccato"] = template.HTML(checkbloccato)
+		c.Data["Checkautomezzi"] = template.HTML(checkautomezzi)
+		c.Data["Checkservizi"] = template.HTML(checkservizi)
+	}(c, &user, &userAPP)
 
-	if this.Ctx.Input.Method() == "POST" {
-		first := this.GetString("first")
-		last := this.GetString("last")
-		email := this.GetString("email")
-		password := this.GetString("password")
-		password2 := this.GetString("password2")
-		userlvl := this.GetString("userlvl")
-		apps := this.GetStrings("apps")
-		blocco := this.GetStrings("blocco")
+	if c.Ctx.Input.Method() == "POST" {
+		first := c.GetString("first")
+		last := c.GetString("last")
+		email := c.GetString("email")
+		password := c.GetString("password")
+		password2 := c.GetString("password2")
+		userlvl := c.GetString("userlvl")
+		apps := c.GetStrings("apps")
+		blocco := c.GetStrings("blocco")
 
 		valid := validation.Validation{}
 		valid.Required(first, "first")
@@ -299,7 +300,7 @@ func (this *MainController) UsersManage() {
 			for _, err := range valid.Errors {
 				errormap = append(errormap, "Validation failed on "+err.Key+": "+err.Message+"\n")
 			}
-			this.Data["Errors"] = errormap
+			c.Data["Errors"] = errormap
 			return
 		}
 
@@ -311,13 +312,13 @@ func (this *MainController) UsersManage() {
 				for _, err := range valid.Errors {
 					errormap = append(errormap, "Validation failed on "+err.Key+": "+err.Message+"\n")
 				}
-				this.Data["Errors"] = errormap
+				c.Data["Errors"] = errormap
 				return
 			}
 
 			if password != password2 {
 				flash.Error("Le password non corrispondono")
-				flash.Store(&this.Controller)
+				flash.Store(&c.Controller)
 				return
 			}
 			h := pk.HashPassword(password)
@@ -329,7 +330,7 @@ func (this *MainController) UsersManage() {
 		/******** Compare submitted password with database
 		if !pk.MatchPassword(current, &x) {
 			flash.Error("Password attuale errata")
-			flash.Store(&this.Controller)
+			flash.Store(&c.Controller)
 			return
 		}*/
 
@@ -359,25 +360,25 @@ func (this *MainController) UsersManage() {
 		_, err := o.Update(&user)
 		if err != nil {
 			flash.Error("Errore interno")
-			flash.Store(&this.Controller)
+			flash.Store(&c.Controller)
 			return
 		}
 
 		_, err = o.Update(&userAPP)
 		if err != nil {
 			flash.Error("Errore interno")
-			flash.Store(&this.Controller)
+			flash.Store(&c.Controller)
 			return
 		}
 
 		flash.Notice("Profilo aggiornato")
-		flash.Store(&this.Controller)
+		flash.Store(&c.Controller)
 
 	}
 
 }
 
-// this funcion check if string is in slice
+//stringInSlice funcion check if string is in slice
 func stringInSlice(a string, list []string) bool {
 	for _, b := range list {
 		if b == a {
@@ -387,7 +388,7 @@ func stringInSlice(a string, list []string) bool {
 	return false
 }
 
-// this function convert string in int
+//ConvertInt function convert string in int
 func ConvertInt(s string) int {
 	//convert string in int
 	i, err := strconv.Atoi(s)

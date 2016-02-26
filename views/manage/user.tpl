@@ -67,8 +67,6 @@
     <td>&nbsp;</td><td><input type="submit" value="Update" /></td>
 </tr>
 </table>
-<a href="http://{{.domainname}}/user/remove">Remove account</a>
-</br>
 <a href="http://{{.domainname}}/manage/id!0!id__gte,0" >Indietro</a>
 
 </form>

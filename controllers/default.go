@@ -9,34 +9,34 @@ type MainController struct {
 	beego.Controller
 }
 
-func (this *MainController) activeContent(view string) {
-	this.Layout = "basic-layout.tpl"
-	this.Data["domainname"] = "localhost:8080"
-	this.LayoutSections = make(map[string]string)
-	this.LayoutSections["Header"] = "header.tpl"
-	this.LayoutSections["Sidebar"] = "sidebar.tpl"
-	this.LayoutSections["Footer"] = "footer.tpl"
-	this.TplNames = view + ".tpl"
-	this.Data["domainname"] = "localhost:8080"
+func (c *MainController) activeContent(view string) {
+	c.Layout = "basic-layout.tpl"
+	c.Data["domainname"] = "localhost:8080"
+	c.LayoutSections = make(map[string]string)
+	c.LayoutSections["Header"] = "header.tpl"
+	c.LayoutSections["Sidebar"] = "sidebar.tpl"
+	c.LayoutSections["Footer"] = "footer.tpl"
+	c.TplName = view + ".tpl"
+	//c.Data["domainname"] = "localhost:8080"
 
-	sess := this.GetSession("automezzi")
+	sess := c.GetSession("automezzi")
 	if sess != nil {
-		this.Data["InSession"] = 1 // for login bar in header.tpl
+		c.Data["InSession"] = 1 // for login bar in header.tpl
 		m := sess.(map[string]interface{})
-		this.Data["First"] = m["first"]
-		this.Data["Admin"] = m["admin"]
-		this.Data["ID_key"] = m["id_key"]
-		this.Data["Automezzi"] = m["automezzi"]
+		c.Data["First"] = m["first"]
+		c.Data["Admin"] = m["admin"]
+		c.Data["ID_key"] = m["id_key"]
+		c.Data["Automezzi"] = m["automezzi"]
 	}
 }
 
-func (this *MainController) Get() {
-	this.activeContent("index")
+func (c *MainController) Get() {
+	c.activeContent("index")
 
-	//******** This page requires login
-	sess := this.GetSession("automezzi")
+	//******** c page requires login
+	sess := c.GetSession("automezzi")
 	if sess == nil {
-		this.Redirect("/user/login/home", 302)
+		c.Redirect("/user/login/home", 302)
 		return
 	}
 	m := sess.(map[string]interface{})
@@ -44,11 +44,12 @@ func (this *MainController) Get() {
 	fmt.Println("logged in at", m["timestamp"])
 }
 
-func (this *MainController) Notice() {
-	this.activeContent("notice")
+//Notice show flash message
+func (c *MainController) Notice() {
+	c.activeContent("notice")
 
-	flash := beego.ReadFromRequest(&this.Controller)
+	flash := beego.ReadFromRequest(&c.Controller)
 	if n, ok := flash.Data["notice"]; ok {
-		this.Data["notice"] = n
+		c.Data["notice"] = n
 	}
 }

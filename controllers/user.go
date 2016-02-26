@@ -2,24 +2,25 @@ package controllers
 
 import (
 	"automezzi/models"
-	pk "automezzi/utilities/pbkdf2wrapper"
+	pk "automezzi/utilities/pbkdf2"
 	"encoding/hex"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
 	"github.com/astaxie/beego/validation"
 	"github.com/go-gomail/gomail"
 	"github.com/twinj/uuid"
-	"strings"
-	"time"
 )
 
 var (
-	appcfg_domainname        string = beego.AppConfig.String("appcfg_domainname")
-	appcfg_MailAccount       string = beego.AppConfig.String("appcfg_MailAccount")
-	appcfg_MailAccountPsw    string = beego.AppConfig.String("appcfg_MailAccountPsw")
-	appcfg_MailHost          string = beego.AppConfig.String("appcfg_MailHost")
-	appcfg_MailHostPort, err        = beego.AppConfig.Int("appcfg_MailHostPort")
+	appcfgdomainname        string = beego.AppConfig.String("appcfg_domainname")
+	appcfgMailAccount       string = beego.AppConfig.String("appcfg_MailAccount")
+	appcfgMailAccountPsw    string = beego.AppConfig.String("appcfg_MailAccountPsw")
+	appcfgMailHost          string = beego.AppConfig.String("appcfg_MailHost")
+	appcfgMailHostPort, err        = beego.AppConfig.Int("appcfg_MailHostPort")
 )
 
 /*
@@ -38,19 +39,19 @@ type User struct {
 //TODO la gestione dei permessi utente non è molto sicura, forse è meglio dividere i permessi in una tabella a parte
 
 //Login func manage User's login
-func (this *MainController) Login() {
-	this.activeContent("user/login")
-	sess := this.GetSession("automezzi")
+func (c *MainController) Login() {
+	c.activeContent("user/login")
+	sess := c.GetSession("automezzi")
 	if sess != nil {
-		this.Redirect("/home", 302)
+		c.Redirect("/home", 302)
 		return
 	}
-	back := strings.Replace(this.Ctx.Input.Param(":back"), ">", "/", -1) // allow for deeper URL such as l1/l2/l3 represented by l1>l2>l3
+	back := strings.Replace(c.Ctx.Input.Param(":back"), ">", "/", -1) // allow for deeper URL such as l1/l2/l3 represented by l1>l2>l3
 	fmt.Println("back is", back)
-	if this.Ctx.Input.Method() == "POST" {
+	if c.Ctx.Input.Method() == "POST" {
 		flash := beego.NewFlash()
-		email := this.GetString("email")
-		password := this.GetString("password")
+		email := strings.ToLower(c.GetString("email"))
+		password := c.GetString("password")
 		valid := validation.Validation{}
 		valid.Email(email, "email")
 		valid.Required(password, "password")
@@ -59,7 +60,7 @@ func (this *MainController) Login() {
 			for _, err := range valid.Errors {
 				errormap = append(errormap, "Validation failed on "+err.Key+": "+err.Message+"\n")
 			}
-			this.Data["Errors"] = errormap
+			c.Data["Errors"] = errormap
 			return
 		}
 		fmt.Println("Authorization is", email, ":", password)
@@ -77,7 +78,7 @@ func (this *MainController) Login() {
 		if err == orm.ErrNoRows {
 			//check if the account exist
 			flash.Error("Account non esiste")
-			flash.Store(&this.Controller)
+			flash.Store(&c.Controller)
 			return
 		} else if err == orm.ErrMissPK {
 			fmt.Println("Errore - Contattare l'amministratore del sito")
@@ -85,48 +86,46 @@ func (this *MainController) Login() {
 		//check if the account is verified
 		if user.Is_approved != true {
 			flash.Error("Account non verificato")
-			flash.Store(&this.Controller)
+			flash.Store(&c.Controller)
 			return
 		}
 		//if the account is blocked
 		if user.Block_controll > 2 || user.Block_controll < 0 {
 			flash.Error("Account bloccato, contattare l'amministratore del sito")
-			flash.Store(&this.Controller)
+			flash.Store(&c.Controller)
 			return
-		} else {
-			// scan in the password hash/salt
-			fmt.Println("Password to scan:", user.Password)
-			if x.Hash, err = hex.DecodeString(user.Password[:64]); err != nil {
-				fmt.Println("ERROR:", err)
-			}
-			if x.Salt, err = hex.DecodeString(user.Password[64:]); err != nil {
-				fmt.Println("ERROR:", err)
-			}
-			fmt.Println("decoded password is", x)
-			// Reset block_controll if user login correctly
-			_, err := o.Update(&user)
-			if err != nil {
-				flash.Error("Internal error")
-				flash.Store(&this.Controller)
-				return
-			}
+		}
+		// scan in the password hash/salt
+		fmt.Println("Password to scan:", user.Password)
+		if x.Hash, err = hex.DecodeString(user.Password[:64]); err != nil {
+			fmt.Println("ERROR:", err)
+		}
+		if x.Salt, err = hex.DecodeString(user.Password[64:]); err != nil {
+			fmt.Println("ERROR:", err)
+		}
+		fmt.Println("decoded password is", x)
+		// Reset block_controll if user login correctly
+		_, err := o.Update(&user)
+		if err != nil {
+			flash.Error("Internal error")
+			flash.Store(&c.Controller)
+			return
 		}
 
 		//******** Compare submitted password with database and increment Block_controll
 		if !pk.MatchPassword(password, &x) {
 			flash.Error("Bad password")
-			flash.Store(&this.Controller)
+			flash.Store(&c.Controller)
 			fmt.Println(user.Block_controll)
 			user.Block_controll++
 			fmt.Println(user.Block_controll)
 			_, err := o.Update(&user)
 			if err == nil {
 				return
-			} else {
-				flash.Error("Internal error")
-				flash.Store(&this.Controller)
-				return
 			}
+			flash.Error("Internal error")
+			flash.Store(&c.Controller)
+			return
 		}
 		// block_controll = 0 because i logged
 		user.Block_controll = 0
@@ -146,15 +145,15 @@ func (this *MainController) Login() {
 			m["admin"] = 0
 		}
 		m["automezzi"] = user.AuthApp.Automezzi
-		this.SetSession("automezzi", m)
-		this.Redirect("/"+back, 302)
+		c.SetSession("automezzi", m)
+		c.Redirect("/"+back, 302)
 
 		//******** Update last login date
 		user.Last_login_date = time.Now()
 		_, err1 := o.Update(&user)
 		if err1 != nil {
 			flash.Error("Errore interno")
-			flash.Store(&this.Controller)
+			flash.Store(&c.Controller)
 			return
 		}
 		fmt.Println("Aggiornato ultimo login")
@@ -162,10 +161,10 @@ func (this *MainController) Login() {
 }
 
 //Logout fun delete session and logout user
-func (this *MainController) Logout() {
-	this.activeContent("logout")
-	this.DelSession("automezzi")
-	this.Redirect("/home", 302)
+func (c *MainController) Logout() {
+	c.activeContent("logout")
+	c.DelSession("automezzi")
+	c.Redirect("/home", 302)
 }
 
 //Type userForm is for get information by form
@@ -179,28 +178,30 @@ type userForm struct {
 	Servizi   bool
 }
 
+//Register func register user in the db
 //TODO: migliorare errore validazione campo email
-//Registration func register user in the db
-func (this *MainController) Register() {
-	this.activeContent("user/register")
+// BUG: se l'account esiste già crea comunque la tabella app
+func (c *MainController) Register() {
+	c.activeContent("user/register")
 
-	if this.Ctx.Input.Method() == "POST" {
+	if c.Ctx.Input.Method() == "POST" {
 		flash := beego.NewFlash()
 		u := userForm{}
 		m := message1{}
-		if err := this.ParseForm(&u); err != nil {
+		if err := c.ParseForm(&u); err != nil {
 			fmt.Println("cannot parse form")
 			return
 		}
-		this.Data["User"] = u
+		u.Email = strings.ToLower(u.Email)
+		c.Data["User"] = u
 		valid := validation.Validation{}
 		if b, _ := valid.Valid(&u); !b {
-			this.Data["Errors"] = valid.ErrorsMap
+			c.Data["Errors"] = valid.ErrorsMap
 			return
 		}
 		if u.Password != u.Confirm {
 			flash.Error("Le password non combaciano")
-			flash.Store(&this.Controller)
+			flash.Store(&c.Controller)
 			return
 		}
 		h := pk.HashPassword(u.Password)
@@ -220,33 +221,52 @@ func (this *MainController) Register() {
 		key := uuid.NewV4()
 		user.Id_key = key.String()
 
-		_, err = o.Insert(&userAPP)
+		//Check if e-mail is used yet
+		var maps []orm.Params
+		num, err := o.QueryTable("auth_user").Filter("Email", u.Email).Values(&maps, "Email")
 		if err != nil {
-			flash.Error("Errore autorizzazioni applicazioni")
-			flash.Store(&this.Controller)
+			flash.Error("Errore interno - Contattare l'Amministratore del sito")
+			flash.Store(&c.Controller)
 			return
 		}
+		//fmt.Println(num)
+		//fmt.Println(u.Email)
+		if num == 0 {
+			//if any account use email create account
+			fmt.Println("Indirizzo Email non utilizzato")
+			_, err = o.Insert(&userAPP)
+			if err != nil {
+				flash.Error("Errore autorizzazioni applicazioni")
+				flash.Store(&c.Controller)
+				return
+			}
+			_, err := o.Insert(&user)
+			if err != nil {
+				flash.Error(u.Email + " gia' registrata - Contattare l'amministratore")
+				flash.Store(&c.Controller)
+				return
+			}
 
-		_, err := o.Insert(&user)
-		if err != nil {
+		} else {
+			//else say "Account exist
 			flash.Error(u.Email + " gia' registrata")
-			flash.Store(&this.Controller)
+			flash.Store(&c.Controller)
 			return
 		}
 
 		//Set verify message
-		link := "http://" + appcfg_domainname + "/user/check/" + user.Id_key
+		link := "http://" + appcfgdomainname + "/user/check/" + user.Id_key
 		m.Email = u.Email
 		m.Subject = "Verifica account portale automezzi"
 		m.Body = "Per verificare l'account premere sul link: <a href=\"" + link + "\">" + link + "</a><br><br>Grazie,<br>E' Cosi'"
 		if !sendComunication(m) {
 			flash.Error("Impossibile inviare email di verifica")
-			flash.Store(&this.Controller)
+			flash.Store(&c.Controller)
 			return
 		}
 		flash.Notice("L'account e' stato creato. Ti abbiamo inviato una e-mail per verificare l'account.")
-		flash.Store(&this.Controller)
-		this.Redirect("/notice", 302)
+		flash.Store(&c.Controller)
+		c.Redirect("/notice", 302)
 	}
 }
 
@@ -259,51 +279,51 @@ type message1 struct {
 
 //S endComunication func get smtp setting from app.conf and send e-mail
 func sendComunication(email message1) bool {
-	fmt.Println(appcfg_MailHost)
-	fmt.Println(appcfg_MailHostPort)
-	fmt.Println(appcfg_MailAccount)
-	fmt.Println(appcfg_MailAccountPsw)
+	//fmt.Println(appcfg_MailHost)
+	//fmt.Println(appcfg_MailHostPort)
+	//fmt.Println(appcfg_MailAccount)
+	//fmt.Println(appcfg_MailAccountPsw)
 	msg := gomail.NewMessage()
-	msg.SetHeader("From", appcfg_MailAccount, "E' Cosi'")
+	msg.SetHeader("From", appcfgMailAccount, "E' Cosi'")
 	msg.SetHeader("To", email.Email)
 	msg.SetHeader("Subject", email.Subject)
 	msg.SetBody("text/html", email.Body)
-	m := gomail.NewPlainDialer(appcfg_MailHost, appcfg_MailHostPort, appcfg_MailAccount, appcfg_MailAccountPsw)
+	m := gomail.NewPlainDialer(appcfgMailHost, appcfgMailHostPort, appcfgMailAccount, appcfgMailAccountPsw)
 	if err := m.DialAndSend(msg); err != nil {
 		return false
 	}
 	return true
 }
 
-//TODO tradurre messaggio di conferma verifica
 //Verify func verifing user by id key
-func (this *MainController) Verify() {
-	this.activeContent("user/check")
+//TODO tradurre messaggio di conferma verifica
+func (c *MainController) Verify() {
+	c.activeContent("user/check")
 	flash := beego.NewFlash()
-	u := this.Ctx.Input.Param(":uuid")
+	u := c.Ctx.Input.Param(":uuid")
 	o := orm.NewOrm()
 	o.Using("default")
 	user := models.AuthUser{Id_key: u}
 	err := o.Read(&user, "Id_key")
 	if err != nil {
-		flash.Notice("Chiave di verifica errata - Riprovare o contattare l'Amministratore")
-		flash.Store(&this.Controller)
-		this.Redirect("/notice", 302)
+		flash.Error("Chiave di verifica errata - Riprovare o contattare l'Amministratore")
+		flash.Store(&c.Controller)
+		c.Redirect("/notice", 302)
 	}
-	this.Data["Verified"] = 1
+	c.Data["Verified"] = 1
 	user.Is_approved = true
 	if _, err := o.Update(&user); err != nil {
-		delete(this.Data, "Verified")
+		delete(c.Data, "Verified")
 	}
 
 }
 
 // Profile func: User's can manage their account information
-func (this *MainController) Profile() {
-	this.activeContent("user/profile")
+func (c *MainController) Profile() {
+	c.activeContent("user/profile")
 
-	//******** This page requires login
-	sess := this.GetSession("automezzi")
+	//******** c page requires login
+	sess := c.GetSession("automezzi")
 	if sess != nil {
 		m := sess.(map[string]interface{})
 		flash := beego.NewFlash()
@@ -320,7 +340,7 @@ func (this *MainController) Profile() {
 		err := o.Read(&user, "Email")
 		if err != nil {
 			flash.Error("Errore interno - Contattare l'Amministratore del sito")
-			flash.Store(&this.Controller)
+			flash.Store(&c.Controller)
 			return
 		}
 
@@ -332,20 +352,20 @@ func (this *MainController) Profile() {
 			fmt.Println("ERROR:", err)
 		}
 
-		// this deferred function ensures that the correct fields from the database are displayed
-		defer func(this *MainController, user *models.AuthUser) {
-			this.Data["First"] = user.First
-			this.Data["Last"] = user.Last
-			this.Data["Email"] = user.Email
-		}(this, &user)
+		// c deferred function ensures that the correct fields from the database are displayed
+		defer func(c *MainController, user *models.AuthUser) {
+			c.Data["First"] = user.First
+			c.Data["Last"] = user.Last
+			c.Data["Email"] = user.Email
+		}(c, &user)
 
-		if this.Ctx.Input.Method() == "POST" {
-			first := this.GetString("first")
-			last := this.GetString("last")
-			email := this.GetString("email")
-			current := this.GetString("current")
-			password := this.GetString("password")
-			password2 := this.GetString("password2")
+		if c.Ctx.Input.Method() == "POST" {
+			first := c.GetString("first")
+			last := c.GetString("last")
+			email := c.GetString("email")
+			current := c.GetString("current")
+			password := c.GetString("password")
+			password2 := c.GetString("password2")
 			valid := validation.Validation{}
 			valid.Required(first, "first")
 			valid.Email(email, "email")
@@ -355,7 +375,7 @@ func (this *MainController) Profile() {
 				for _, err := range valid.Errors {
 					errormap = append(errormap, "Validation failed on "+err.Key+": "+err.Message+"\n")
 				}
-				this.Data["Errors"] = errormap
+				c.Data["Errors"] = errormap
 				return
 			}
 
@@ -367,13 +387,13 @@ func (this *MainController) Profile() {
 					for _, err := range valid.Errors {
 						errormap = append(errormap, "Validation failed on "+err.Key+": "+err.Message+"\n")
 					}
-					this.Data["Errors"] = errormap
+					c.Data["Errors"] = errormap
 					return
 				}
 
 				if password != password2 {
 					flash.Error("Le password non corrispondono")
-					flash.Store(&this.Controller)
+					flash.Store(&c.Controller)
 					return
 				}
 				h := pk.HashPassword(password)
@@ -385,7 +405,7 @@ func (this *MainController) Profile() {
 			//******** Compare submitted password with database
 			if !pk.MatchPassword(current, &x) {
 				flash.Error("Password attuale errata")
-				flash.Store(&this.Controller)
+				flash.Store(&c.Controller)
 				return
 			}
 
@@ -398,37 +418,37 @@ func (this *MainController) Profile() {
 			_, err := o.Update(&user)
 			if err != nil {
 				flash.Error("Errore interno")
-				flash.Store(&this.Controller)
+				flash.Store(&c.Controller)
 				return
 			}
 
 			flash.Notice("Profilo aggiornato")
-			flash.Store(&this.Controller)
+			flash.Store(&c.Controller)
 			//update sessin email
 			m["username"] = email
 		}
 	} else {
 		//if user isn't logged redirect in the ompage
-		this.Redirect("/user/login/home", 302)
+		c.Redirect("/user/login/home", 302)
 		return
 	}
 
 }
 
 //Remove func delete user from DB
-func (this *MainController) Remove() {
-	this.activeContent("user/remove")
+func (c *MainController) Remove() {
+	c.activeContent("user/remove")
 
-	//******** This page requires login
-	sess := this.GetSession("automezzi")
+	//******** c page requires login
+	sess := c.GetSession("automezzi")
 	if sess == nil {
-		this.Redirect("/user/login/home", 302)
+		c.Redirect("/user/login/home", 302)
 		return
 	}
 	m := sess.(map[string]interface{})
 
-	if this.Ctx.Input.Method() == "POST" {
-		current := this.GetString("current")
+	if c.Ctx.Input.Method() == "POST" {
+		current := c.GetString("current")
 		valid := validation.Validation{}
 		valid.Required(current, "current")
 		if valid.HasErrors() {
@@ -436,7 +456,7 @@ func (this *MainController) Remove() {
 			for _, err := range valid.Errors {
 				errormap = append(errormap, "Validation failed on "+err.Key+": "+err.Message+"\n")
 			}
-			this.Data["Errors"] = errormap
+			c.Data["Errors"] = errormap
 			return
 		}
 
@@ -454,7 +474,7 @@ func (this *MainController) Remove() {
 		err := o.Read(&user, "Email")
 		if err != nil {
 			flash.Error("Errore interno")
-			flash.Store(&this.Controller)
+			flash.Store(&c.Controller)
 			return
 		}
 		// scan in the password hash/salt
@@ -468,7 +488,7 @@ func (this *MainController) Remove() {
 		//******** Compare submitted password with database
 		if !pk.MatchPassword(current, &x) {
 			flash.Error("Password corrente sbagliata")
-			flash.Store(&this.Controller)
+			flash.Store(&c.Controller)
 			return
 		}
 
@@ -476,23 +496,23 @@ func (this *MainController) Remove() {
 		_, err = o.Delete(&user)
 		if err != nil {
 			flash.Error("Errore Interno - Contattare l'Amministratore del sito")
-			flash.Store(&this.Controller)
+			flash.Store(&c.Controller)
 			return
 		}
 		flash.Notice("Il tuo account e' stato cancellato.")
-		flash.Store(&this.Controller)
-		this.DelSession("automezzi")
-		this.Redirect("/notice", 302)
+		flash.Store(&c.Controller)
+		c.DelSession("automezzi")
+		c.Redirect("/notice", 302)
 
 	}
 }
 
 //Forgot func help user to restore password if they forgot it
-func (this *MainController) Forgot() {
-	this.activeContent("user/forgot")
+func (c *MainController) Forgot() {
+	c.activeContent("user/forgot")
 
-	if this.Ctx.Input.Method() == "POST" {
-		email := this.GetString("email")
+	if c.Ctx.Input.Method() == "POST" {
+		email := c.GetString("email")
 		valid := validation.Validation{}
 		valid.Email(email, "email")
 		if valid.HasErrors() {
@@ -500,7 +520,7 @@ func (this *MainController) Forgot() {
 			for _, err := range valid.Errors {
 				errormap = append(errormap, "Validation failed on "+err.Key+": "+err.Message+"\n")
 			}
-			this.Data["Errors"] = errormap
+			c.Data["Errors"] = errormap
 			return
 		}
 
@@ -512,7 +532,7 @@ func (this *MainController) Forgot() {
 		err := o.Read(&user, "Email")
 		if err != nil {
 			flash.Error("Non esiste un utente con questo indirizzo e-mail")
-			flash.Store(&this.Controller)
+			flash.Store(&c.Controller)
 			return
 		}
 
@@ -521,41 +541,41 @@ func (this *MainController) Forgot() {
 		_, err = o.Update(&user)
 		if err != nil {
 			flash.Error("Errore interno")
-			flash.Store(&this.Controller)
+			flash.Store(&c.Controller)
 			return
 		}
 
 		m := message1{}
-		link := "http://" + appcfg_domainname + "/user/reset/" + u.String()
+		link := "http://" + appcfgdomainname + "/user/reset/" + u.String()
 		m.Email = email
 		m.Subject = "Richiesta di azzeramento password Portale E' Così"
 		m.Body = "Per resettare la tua password, premi sul seguente link: <a href=\"" + link + "\">" + link + "</a><br><br>Grazie,<br>E' Cosi'"
 		sendComunication(m)
 		flash.Notice("Ti abbiamo inviato un link per resettare la password. Controlla la tua email.")
-		flash.Store(&this.Controller)
-		this.Redirect("/notice", 302)
+		flash.Store(&c.Controller)
+		c.Redirect("/notice", 302)
 	}
 }
 
 //Reset func reset password if user forgot login credentials
-func (this *MainController) Reset() {
-	this.activeContent("user/reset")
+func (c *MainController) Reset() {
+	c.activeContent("user/reset")
 
 	flash := beego.NewFlash()
 
-	u := this.Ctx.Input.Param(":uuid")
+	u := c.Ctx.Input.Param(":uuid")
 	o := orm.NewOrm()
 	o.Using("default")
 	user := models.AuthUser{Reset_key: u}
 	err := o.Read(&user, "Reset_key")
 	if err != nil {
-		flash.Notice("Chiave invalida.")
-		flash.Store(&this.Controller)
-		this.Redirect("/notice", 302)
+		flash.Error("Chiave invalida.")
+		flash.Store(&c.Controller)
+		c.Redirect("/notice", 302)
 	}
-	if this.Ctx.Input.Method() == "POST" {
-		password := this.GetString("password")
-		password2 := this.GetString("password2")
+	if c.Ctx.Input.Method() == "POST" {
+		password := c.GetString("password")
+		password2 := c.GetString("password2")
 		valid := validation.Validation{}
 		valid.MinSize(password, 6, "password")
 		valid.Required(password2, "password2")
@@ -564,13 +584,13 @@ func (this *MainController) Reset() {
 			for _, err := range valid.Errors {
 				errormap = append(errormap, "Validation failed on "+err.Key+": "+err.Message+"\n")
 			}
-			this.Data["Errors"] = errormap
+			c.Data["Errors"] = errormap
 			return
 		}
 
 		if password != password2 {
 			flash.Error("Le password non corrispondono")
-			flash.Store(&this.Controller)
+			flash.Store(&c.Controller)
 			return
 		}
 		h := pk.HashPassword(password)
@@ -582,11 +602,11 @@ func (this *MainController) Reset() {
 		user.Last_edit_date = time.Now()
 		if _, err := o.Update(&user); err != nil {
 			flash.Error("Errore interno")
-			flash.Store(&this.Controller)
+			flash.Store(&c.Controller)
 			return
 		}
 		flash.Notice("Password aggiornata.")
-		flash.Store(&this.Controller)
-		this.Redirect("/notice", 302)
+		flash.Store(&c.Controller)
+		c.Redirect("/notice", 302)
 	}
 }

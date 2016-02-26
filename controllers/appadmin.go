@@ -1,8 +1,8 @@
 package controllers
 
 import (
+	pk "acme3/utilities/pbkdf2"
 	"automezzi/models"
-	pk "automezzi/utilities/pbkdf2wrapper"
 	"encoding/hex"
 	"fmt"
 	"github.com/astaxie/beego"
@@ -20,21 +20,21 @@ type AdminController struct {
 	beego.Controller
 }
 
-func (this *AdminController) activeAdminContent(view string) {
-	this.Layout = "admin-layout.tpl"
-	this.LayoutSections = make(map[string]string)
-	this.LayoutSections["Header"] = "header.tpl"
-	this.LayoutSections["Footer"] = "footer.tpl"
-	this.TplNames = view + ".tpl"
-	this.Data["domainname"] = "localhost:8080"
+func (c *AdminController) activeAdminContent(view string) {
+	c.Layout = "admin-layout.tpl"
+	c.LayoutSections = make(map[string]string)
+	c.LayoutSections["Header"] = "header.tpl"
+	c.LayoutSections["Footer"] = "footer.tpl"
+	c.TplName = view + ".tpl"
+	c.Data["domainname"] = "localhost:8080"
 
-	sess := this.GetSession("automezzi")
+	sess := c.GetSession("automezzi")
 	if sess != nil {
-		this.Data["InSession"] = 1 // for login bar in header.tpl
+		c.Data["InSession"] = 1 // for login bar in header.tpl
 		m := sess.(map[string]interface{})
-		this.Data["First"] = m["first"]
-		this.Data["Admin"] = m["admin"]
-		this.Data["ID_key"] = m["id_key"]
+		c.Data["First"] = m["first"]
+		c.Data["Admin"] = m["admin"]
+		c.Data["ID_key"] = m["id_key"]
 	}
 }
 
@@ -44,18 +44,18 @@ type compareform struct {
 	Compareval   string `form:"compareval" valid:"Required"`
 }
 
-func (this *AdminController) setCompare(query string) (orm.QuerySeter, bool) {
+func (c *AdminController) setCompare(query string) (orm.QuerySeter, bool) {
 	o := orm.NewOrm()
 	qs := o.QueryTable("auth_user")
-	if this.Ctx.Input.Method() == "POST" {
+	if c.Ctx.Input.Method() == "POST" {
 		f := compareform{}
-		if err := this.ParseForm(&f); err != nil {
+		if err := c.ParseForm(&f); err != nil {
 			fmt.Println("cannot parse form")
 			return qs, false
 		}
 		valid := validation.Validation{}
 		if b, _ := valid.Valid(&f); !b {
-			this.Data["Errors"] = valid.ErrorsMap
+			c.Data["Errors"] = valid.ErrorsMap
 			return qs, false
 		}
 		if len(f.Compareop) >= 5 && f.Compareop[:5] == "__not" {
@@ -63,7 +63,7 @@ func (this *AdminController) setCompare(query string) (orm.QuerySeter, bool) {
 		} else {
 			qs = qs.Filter(f.Comparefield+f.Compareop, f.Compareval)
 		}
-		this.Data["query"] = f.Comparefield + f.Compareop + "," + f.Compareval
+		c.Data["query"] = f.Comparefield + f.Compareop + "," + f.Compareval
 	} else {
 		str := strings.Split(query, ",")
 		i := strings.Index(str[0], "__")
@@ -72,7 +72,7 @@ func (this *AdminController) setCompare(query string) (orm.QuerySeter, bool) {
 		} else {
 			qs = qs.Filter(str[0], str[1])
 		}
-		this.Data["query"] = query
+		c.Data["query"] = query
 	}
 	return qs, true
 }
@@ -84,12 +84,12 @@ func max(a, b int64) int64 {
 	return a
 }
 
-func (this *AdminController) Index() {
-	this.activeAdminContent("appadmin/index")
+func (c *AdminController) Index() {
+	c.activeAdminContent("appadmin/index")
 
-	sess := this.GetSession("automezzi")
+	sess := c.GetSession("automezzi")
 	if sess == nil {
-		this.Redirect("/home", 302)
+		c.Redirect("/home", 302)
 		return
 	}
 	flash := beego.NewFlash()
@@ -98,21 +98,21 @@ func (this *AdminController) Index() {
 	fmt.Println(reflect.ValueOf(m["admin"]).Type())
 	if m["admin"] != 3 {
 		flash.Notice("Non hai i diritti per accedere a questa pagina")
-		flash.Store(&this.Controller)
-		this.Redirect("/notice", 302)
+		flash.Store(&c.Controller)
+		c.Redirect("/notice", 302)
 	}
 	fmt.Printf("hai i diritti")
 
-	defer func(this *AdminController) {
+	defer func(c *AdminController) {
 		if r := recover(); r != nil {
 			fmt.Println("Recovered in Index", r)
-			this.Redirect("/home", 302)
+			c.Redirect("/home", 302)
 		}
-	}(this)
+	}(c)
 
 	const pagesize = 10
-	parms := this.Ctx.Input.Param(":parms")
-	this.Data["parms"] = parms
+	parms := c.Ctx.Input.Param(":parms")
+	c.Data["parms"] = parms
 	str := strings.Split(parms, "!")
 	fmt.Println("parms is", str)
 	order := str[0]
@@ -126,17 +126,17 @@ func (this *AdminController) Index() {
 	var users []*models.AuthUser
 	rows := ""
 
-	qs, ok := this.setCompare(query)
+	qs, ok := c.setCompare(query)
 	if !ok {
 		fmt.Println("cannot set QuerySeter")
 		o := orm.NewOrm()
 		qs := o.QueryTable("auth_user")
 		qs = qs.Filter("id__gte", 0)
-		this.Data["query"] = "id__gte,0"
+		c.Data["query"] = "id__gte,0"
 	}
 
 	count, _ := qs.Count()
-	this.Data["count"] = count
+	c.Data["count"] = count
 	if offset >= count {
 		offset = 0
 	}
@@ -144,7 +144,7 @@ func (this *AdminController) Index() {
 	if err != nil {
 		fmt.Println("Query table failed:", err)
 	}
-	domainname := this.Data["domainname"]
+	domainname := c.Data["domainname"]
 	for x := range users {
 		i := strings.Index(users[x].Reg_date.String(), " ")
 		rows += fmt.Sprintf("<tr><td><a href='http://%s/appadmin/update/%s!%s'>%d</a></td>"+
@@ -152,35 +152,35 @@ func (this *AdminController) Index() {
 			users[x].Id, users[x].First, users[x].Last, users[x].Email, users[x].Password[:20],
 			users[x].Id_key, users[x].Reg_date.String()[:i], users[x].Reset_key)
 	}
-	this.Data["Rows"] = template.HTML(rows)
+	c.Data["Rows"] = template.HTML(rows)
 
-	this.Data["order"] = order
-	this.Data["offset"] = offset
-	this.Data["end"] = max(0, (count/pagesize)*pagesize)
+	c.Data["order"] = order
+	c.Data["offset"] = offset
+	c.Data["end"] = max(0, (count/pagesize)*pagesize)
 	if num+offset < count {
-		this.Data["next"] = num + offset
+		c.Data["next"] = num + offset
 	}
 	if offset-pagesize >= 0 {
-		this.Data["prev"] = offset - pagesize
-		this.Data["showprev"] = true
+		c.Data["prev"] = offset - pagesize
+		c.Data["showprev"] = true
 	} else if offset > 0 && offset < pagesize {
-		this.Data["prev"] = 0
-		this.Data["showprev"] = true
+		c.Data["prev"] = 0
+		c.Data["showprev"] = true
 	}
 
 	if count > pagesize {
-		this.Data["ShowNav"] = true
+		c.Data["ShowNav"] = true
 	}
-	this.Data["progress"] = float64(offset*100) / float64(max(count, 1))
+	c.Data["progress"] = float64(offset*100) / float64(max(count, 1))
 
 }
 
-func (this *AdminController) Add() {
-	this.activeAdminContent("appadmin/add")
+func (c *AdminController) Add() {
+	c.activeAdminContent("appadmin/add")
 
-	sess := this.GetSession("automezzi")
+	sess := c.GetSession("automezzi")
 	if sess == nil {
-		this.Redirect("/home", 302)
+		c.Redirect("/home", 302)
 		return
 	}
 	flash := beego.NewFlash()
@@ -189,27 +189,27 @@ func (this *AdminController) Add() {
 	fmt.Println(reflect.ValueOf(m["admin"]).Type())
 	if m["admin"] != 3 {
 		flash.Notice("Non hai i diritti per accedere a questa pagina")
-		flash.Store(&this.Controller)
-		this.Redirect("/notice", 302)
+		flash.Store(&c.Controller)
+		c.Redirect("/notice", 302)
 	}
 	fmt.Printf("hai i diritti")
-	parms := this.Ctx.Input.Param(":parms")
+	parms := c.Ctx.Input.Param(":parms")
 	fmt.Println(parms)
-	this.Data["parms"] = parms
+	c.Data["parms"] = parms
 
-	if this.Ctx.Input.Method() == "POST" {
+	if c.Ctx.Input.Method() == "POST" {
 
 		u := authUser{}
 
-		if err := this.ParseForm(&u); err != nil {
+		if err := c.ParseForm(&u); err != nil {
 			fmt.Println("cannot parse form")
 			return
 		}
 		fmt.Println(u)
-		this.Data["User"] = u
+		c.Data["User"] = u
 		valid := validation.Validation{}
 		if b, _ := valid.Valid(&u); !b {
-			this.Data["Errors"] = valid.ErrorsMap
+			c.Data["Errors"] = valid.ErrorsMap
 			return
 		}
 		h := pk.HashPassword(u.Password)
@@ -232,19 +232,19 @@ func (this *AdminController) Add() {
 		_, err = o.Insert(&userAPP)
 		if err != nil {
 			flash.Error("Errore autorizzazioni applicazioni")
-			flash.Store(&this.Controller)
+			flash.Store(&c.Controller)
 			return
 		}
 
 		_, err := o.Insert(&user)
 		if err != nil {
 			flash.Error(u.Email + " gia' registrata")
-			flash.Store(&this.Controller)
+			flash.Store(&c.Controller)
 			return
 		}
 
 		flash.Notice("User added")
-		flash.Store(&this.Controller)
+		flash.Store(&c.Controller)
 	}
 
 }
@@ -262,12 +262,13 @@ type authUser struct {
 	Delete      string `form:"delete,checkbox"`
 }
 
-func (this *AdminController) Update() {
-	this.activeAdminContent("appadmin/update")
-	sess := this.GetSession("automezzi")
+//Update account information
+func (c *AdminController) Update() {
+	c.activeAdminContent("appadmin/update")
+	sess := c.GetSession("automezzi")
 	//if you aren't logged redirect to home
 	if sess == nil {
-		this.Redirect("/home", 302)
+		c.Redirect("/home", 302)
 		return
 	}
 	flash := beego.NewFlash()
@@ -277,40 +278,40 @@ func (this *AdminController) Update() {
 	//check if you are admin
 	if m["admin"] != 3 {
 		flash.Notice("Non hai i diritti per accedere a questa pagina")
-		flash.Store(&this.Controller)
-		this.Redirect("/notice", 302)
+		flash.Store(&c.Controller)
+		c.Redirect("/notice", 302)
 	}
 	fmt.Printf("hai i diritti")
-	defer func(this *AdminController) {
+	defer func(c *AdminController) {
 		if r := recover(); r != nil {
 			fmt.Println("Recovered in Update", r)
-			this.Redirect("/home", 302)
+			c.Redirect("/home", 302)
 		}
-	}(this)
+	}(c)
 
-	str := this.Ctx.Input.Param(":username")
+	str := c.Ctx.Input.Param(":username")
 	i := strings.Index(str, "!")
 	username := str[:i]
-	this.Data["parms"] = str[i+1:]
+	c.Data["parms"] = str[i+1:]
 	o := orm.NewOrm()
 	o.Using("default")
 	user := models.AuthUser{Email: username}
 	if err := o.Read(&user, "Email"); err != nil {
 		flash.Error("Internal error")
-		flash.Store(&this.Controller)
+		flash.Store(&c.Controller)
 		return
 	}
 
-	if this.Ctx.Input.Method() == "POST" {
+	if c.Ctx.Input.Method() == "POST" {
 		u := authUser{}
-		if err := this.ParseForm(&u); err != nil {
+		if err := c.ParseForm(&u); err != nil {
 			fmt.Println("cannot parse form")
 			return
 		}
-		this.Data["User"] = u
+		c.Data["User"] = u
 		valid := validation.Validation{}
 		if b, _ := valid.Valid(&u); !b {
-			this.Data["Errors"] = valid.ErrorsMap
+			c.Data["Errors"] = valid.ErrorsMap
 			return
 		}
 
@@ -319,11 +320,11 @@ func (this *AdminController) Update() {
 			_, err := o.Delete(&user)
 			if err == nil {
 				flash.Notice("Record deleted")
-				flash.Store(&this.Controller)
+				flash.Store(&c.Controller)
 				return
 			} else {
 				flash.Error("Internal error")
-				flash.Store(&this.Controller)
+				flash.Store(&c.Controller)
 				return
 			}
 		}
@@ -342,13 +343,13 @@ func (this *AdminController) Update() {
 		_, err := o.Update(&user)
 		if err != nil {
 			flash.Error("Update failed")
-			flash.Store(&this.Controller)
+			flash.Store(&c.Controller)
 			return
 		}
 
 		flash.Error("User updated")
-		flash.Store(&this.Controller)
+		flash.Store(&c.Controller)
 	} else {
-		this.Data["User"] = user
+		c.Data["User"] = user
 	}
 }

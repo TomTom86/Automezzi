@@ -4,13 +4,14 @@ import (
 	_ "automezzi/models"
 	_ "automezzi/routers"
 	"fmt"
+
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
 	_ "github.com/mattn/go-sqlite3"
 )
 
 func init() {
-	orm.RegisterDriver("sqlite", orm.DR_Sqlite)
+	orm.RegisterDriver("sqlite", orm.DRSqlite)
 	orm.RegisterDataBase("default", "sqlite3", "automezzi.db")
 	orm.Debug = true
 	name := "default"
@@ -23,6 +24,7 @@ func init() {
 }
 
 func main() {
-	beego.SessionOn = true
+    beego.BConfig.WebConfig.Session.SessionOn = true
+	//beego.SessionOn = true
 	beego.Run()
 }
