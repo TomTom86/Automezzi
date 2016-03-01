@@ -29,6 +29,7 @@ type AuthApp struct {
 	ID        int
 	Automezzi bool
 	Servizi   bool
+    Conducenti  *Conducenti `orm:"reverse(one)"`
 	AuthUser  *AuthUser `orm:"reverse(one)"`
 }
 
@@ -56,7 +57,7 @@ type VeicoliDG struct {
 //VeicoliDT contiene le specifiche tecniche veicolo
 type VeicoliDT struct {
 	ID                int             `orm:"pk;not null;auto;unique"`
-	MatriculationYear time.Time       `orm:"type(date)"`
+	AnnoImmatricolazione time.Time       `orm:"type(date)"`
 	NLibretto         int             `orm:"null"`
 	NTelaio           int             `orm:"null"`
 	Marca             string          `orm:"size(7)"`
@@ -122,6 +123,7 @@ type Conducenti struct {
 	Movimenti     []*Movimenti    `orm:"reverse(many)"`
 	Rifornimenti  []*Rifornimenti `orm:"reverse(many)"`
 	Spese         []*Spese        `orm:"reverse(many)"`
+    AuthApp         *AuthApp      `orm:"rel(fk)"`
 }
 
 //Allegati continee l'elenco degli allegati
