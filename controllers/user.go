@@ -16,26 +16,13 @@ import (
 )
 
 var (
-	appcfgdomainname        string = beego.AppConfig.String("appcfg_domainname")
-	appcfgMailAccount       string = beego.AppConfig.String("appcfg_MailAccount")
-	appcfgMailAccountPsw    string = beego.AppConfig.String("appcfg_MailAccountPsw")
-	appcfgMailHost          string = beego.AppConfig.String("appcfg_MailHost")
-	appcfgMailHostPort, err        = beego.AppConfig.Int("appcfg_MailHostPort")
+	appcfgdomainname        string = beego.AppConfig.String("appcfgdomainname")
+	appcfgMailAccount       string = beego.AppConfig.String("appcfgMailAccount")
+	appcfgMailAccountPsw    string = beego.AppConfig.String("appcfgMailAccountPsw")
+	appcfgMailHost          string = beego.AppConfig.String("appcfgMailHost")
+	appcfgMailHostPort, err        = beego.AppConfig.Int("appcfgMailHostPort")
 )
 
-/*
-type User struct {
-    Id   int32
-    First string
-	Last string
-	Email string
-	Group int
-	Id_key string
-	Is_approved bool
-	Last_login_date	time.Time
-	Last_edit_date	time.Time
-}
-*/
 //TODO la gestione dei permessi utente non è molto sicura, forse è meglio dividere i permessi in una tabella a parte
 
 //Login func manage User's login
@@ -84,13 +71,13 @@ func (c *MainController) Login() {
 			fmt.Println("Errore - Contattare l'amministratore del sito")
 		}
 		//check if the account is verified
-		if user.Is_approved != true {
+		if user.IsApproved != true {
 			flash.Error("Account non verificato")
 			flash.Store(&c.Controller)
 			return
 		}
 		//if the account is blocked
-		if user.Block_controll > 2 || user.Block_controll < 0 {
+		if user.BlockControll > 2 || user.BlockControll < 0 {
 			flash.Error("Account bloccato, contattare l'amministratore del sito")
 			flash.Store(&c.Controller)
 			return
@@ -104,7 +91,7 @@ func (c *MainController) Login() {
 			fmt.Println("ERROR:", err)
 		}
 		fmt.Println("decoded password is", x)
-		// Reset block_controll if user login correctly
+		// Reset blockControll if user login correctly
 		_, err := o.Update(&user)
 		if err != nil {
 			flash.Error("Internal error")
@@ -116,9 +103,9 @@ func (c *MainController) Login() {
 		if !pk.MatchPassword(password, &x) {
 			flash.Error("Bad password")
 			flash.Store(&c.Controller)
-			fmt.Println(user.Block_controll)
-			user.Block_controll++
-			fmt.Println(user.Block_controll)
+			fmt.Println(user.BlockControll)
+			user.BlockControll++
+			fmt.Println(user.BlockControll)
 			_, err := o.Update(&user)
 			if err == nil {
 				return
@@ -127,8 +114,8 @@ func (c *MainController) Login() {
 			flash.Store(&c.Controller)
 			return
 		}
-		// block_controll = 0 because i logged
-		user.Block_controll = 0
+		// blockControll = 0 because i logged
+		user.BlockControll = 0
 
 		//******** Create session and go back to previous page
 
@@ -137,7 +124,7 @@ func (c *MainController) Login() {
 		m["first"] = user.First
 		m["username"] = user.Email
 		m["timestamp"] = time.Now()
-		m["id_key"] = user.Id_key
+		m["idkey"] = user.IDkey
 		// check if userlvl is Administrator
 		if user.Group == 3 {
 			m["admin"] = user.Group
@@ -149,7 +136,7 @@ func (c *MainController) Login() {
 		c.Redirect("/"+back, 302)
 
 		//******** Update last login date
-		user.Last_login_date = time.Now()
+		user.LastLoginDate = time.Now()
 		_, err1 := o.Update(&user)
 		if err1 != nil {
 			flash.Error("Errore interno")
@@ -212,14 +199,14 @@ func (c *MainController) Register() {
 
 		//Create and set user and userApp models
 		userAPP := models.AuthApp{Automezzi: false, Servizi: false}
-		user := models.AuthUser{First: u.First, Last: u.Last, Email: u.Email, Is_approved: false, Group: 0, AuthApp: &userAPP}
+		user := models.AuthUser{First: u.First, Last: u.Last, Email: u.Email, IsApproved: false, Group: 0, AuthApp: &userAPP}
 
 		// Convert password hash to string
 		user.Password = hex.EncodeToString(h.Hash) + hex.EncodeToString(h.Salt)
 
 		// Add user to database with new uuid and send verification email
 		key := uuid.NewV4()
-		user.Id_key = key.String()
+		user.IDkey = key.String()
 
 		//Check if e-mail is used yet
 		var maps []orm.Params
@@ -255,7 +242,7 @@ func (c *MainController) Register() {
 		}
 
 		//Set verify message
-		link := "http://" + appcfgdomainname + "/user/check/" + user.Id_key
+		link := "http://" + appcfgdomainname + "/user/check/" + user.IDkey
 		m.Email = u.Email
 		m.Subject = "Verifica account portale automezzi"
 		m.Body = "Per verificare l'account premere sul link: <a href=\"" + link + "\">" + link + "</a><br><br>Grazie,<br>E' Cosi'"
@@ -279,10 +266,10 @@ type message1 struct {
 
 //S endComunication func get smtp setting from app.conf and send e-mail
 func sendComunication(email message1) bool {
-	//fmt.Println(appcfg_MailHost)
-	//fmt.Println(appcfg_MailHostPort)
-	//fmt.Println(appcfg_MailAccount)
-	//fmt.Println(appcfg_MailAccountPsw)
+	//fmt.Println(appcfgMailHost)
+	//fmt.Println(appcfgMailHostPort)
+	//fmt.Println(appcfgMailAccount)
+	//fmt.Println(appcfgMailAccountPsw)
 	msg := gomail.NewMessage()
 	msg.SetHeader("From", appcfgMailAccount, "E' Cosi'")
 	msg.SetHeader("To", email.Email)
@@ -303,15 +290,15 @@ func (c *MainController) Verify() {
 	u := c.Ctx.Input.Param(":uuid")
 	o := orm.NewOrm()
 	o.Using("default")
-	user := models.AuthUser{Id_key: u}
-	err := o.Read(&user, "Id_key")
+	user := models.AuthUser{IDkey: u}
+	err := o.Read(&user, "IDkey")
 	if err != nil {
 		flash.Error("Chiave di verifica errata - Riprovare o contattare l'Amministratore")
 		flash.Store(&c.Controller)
 		c.Redirect("/notice", 302)
 	}
 	c.Data["Verified"] = 1
-	user.Is_approved = true
+	user.IsApproved = true
 	if _, err := o.Update(&user); err != nil {
 		delete(c.Data, "Verified")
 	}
@@ -413,7 +400,7 @@ func (c *MainController) Profile() {
 			user.First = first
 			user.Last = last
 			user.Email = email
-			user.Last_edit_date = time.Now()
+			user.LastEditDate = time.Now()
 
 			_, err := o.Update(&user)
 			if err != nil {
@@ -537,7 +524,7 @@ func (c *MainController) Forgot() {
 		}
 
 		u := uuid.NewV4()
-		user.Reset_key = u.String()
+		user.ResetKey = u.String()
 		_, err = o.Update(&user)
 		if err != nil {
 			flash.Error("Errore interno")
@@ -566,8 +553,8 @@ func (c *MainController) Reset() {
 	u := c.Ctx.Input.Param(":uuid")
 	o := orm.NewOrm()
 	o.Using("default")
-	user := models.AuthUser{Reset_key: u}
-	err := o.Read(&user, "Reset_key")
+	user := models.AuthUser{ResetKey: u}
+	err := o.Read(&user, "ResetKey")
 	if err != nil {
 		flash.Error("Chiave invalida.")
 		flash.Store(&c.Controller)
@@ -597,9 +584,9 @@ func (c *MainController) Reset() {
 
 		// Convert password hash to string
 		user.Password = hex.EncodeToString(h.Hash) + hex.EncodeToString(h.Salt)
-		// Reset Reset_key flag and update last_edit_date
-		user.Reset_key = ""
-		user.Last_edit_date = time.Now()
+		// Reset ResetKey flag and update lastEditDate
+		user.ResetKey = ""
+		user.LastEditDate = time.Now()
 		if _, err := o.Update(&user); err != nil {
 			flash.Error("Errore interno")
 			flash.Store(&c.Controller)

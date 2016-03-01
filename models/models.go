@@ -5,26 +5,28 @@ import (
 	"time"
 )
 
+//AuthUser struct for login manager
 type AuthUser struct {
-	Id              int    `orm:"auto"`
-	First           string `orm:"size(20)"`
-	Last            string `orm:"size(20)"`
-	Email           string `orm:"unique"`
-	Password        string `orm:"size(60)"`
-	Is_approved     bool
-	Id_key          string    `orm:"size(20)"`
-	Reg_date        time.Time `orm:"auto_now_add;type(datetime)"`
-	Last_login_date time.Time `orm:"auto_now_add;type(datetime)"`
-	Last_edit_date  time.Time `orm:"auto_now_add;type(datetime)"`
-	Reset_key       string    `orm:"size(20)"`
-	Block_controll  int
-	Group           int
-	Note            string   `orm:"size(100)"`
-	AuthApp         *AuthApp `orm:"rel(one)"`
+	ID            int    `orm:"auto"`
+	First         string `orm:"size(20)"`
+	Last          string `orm:"size(20)"`
+	Email         string `orm:"unique"`
+	Password      string `orm:"size(60)"`
+	IsApproved    bool
+	IDkey         string    `orm:"size(20)"`
+	RegDate       time.Time `orm:"auto_now_add;type(datetime)"`
+	LastLoginDate time.Time `orm:"auto_now_add;type(datetime)"`
+	LastEditDate  time.Time `orm:"auto_now_add;type(datetime)"`
+	ResetKey      string    `orm:"size(20)"`
+	BlockControll int
+	Group         int
+	Note          string   `orm:"size(100)"`
+	AuthApp       *AuthApp `orm:"rel(one)"`
 }
 
+//AuthApp struct for app manager
 type AuthApp struct {
-	Id        int 
+	ID        int
 	Automezzi bool
 	Servizi   bool
 	AuthUser  *AuthUser `orm:"reverse(one)"`
@@ -32,154 +34,115 @@ type AuthApp struct {
 
 //***********DB AUTOMEZZI**************
 
-//VEICOLO
-//Veicolo
-type VehicleDG struct {
-	Id     int `orm:"auto;unique"`
-	Targa          string `orm:"unique"`
-	DataInFlotta   time.Time    `orm:"type(date)"`
-	DataFineFlotta time.Time    `orm:"type(date)"`
-	Note           string       `orm:"null;size(100)"`
-	VehicleDT      *VehicleDT   `orm:"rel(one)"`
-	VehicleType    *VehicleType `orm:"rel(fk)"`
-	Sector         *Sector      `orm:"rel(fk)"`
-	Condition      *Condition   `orm:"rel(fk)"`
-	Employment     *Employment  `orm:"rel(fk)"`
-	Conducenti     *Conducenti  `orm:"rel(fk)"`
-	Movimenti		[]*Movimenti `orm:"reverse(many)"`
-	Spesa			[]*Spesa `orm:"reverse(many)"`
-	Incidenti		[]*Incidenti `orm:"reverse(many)"`
-	Rifornimenti	[]*Rifornimenti `orm:"reverse(many)"`
-	
+//VeicoliDG contiene dati veicolo
+type VeicoliDG struct {
+	ID             int             `orm:"auto;unique"`
+	Targa          string          `orm:"unique"`
+	DataInFlotta   time.Time       `orm:"type(date)"`
+	DataFineFlotta time.Time       `orm:"type(date)"`
+	Note           string          `orm:"null;size(100)"`
+	VeicoliDT      *VeicoliDT      `orm:"rel(one)"`
+	TipiVeicolo    *TipiVeicolo    `orm:"rel(fk)"`
+	Settori        *Settori        `orm:"rel(fk)"`
+	Condizioni     *Condizioni     `orm:"rel(fk)"`
+	Impieghi       *Impieghi       `orm:"rel(fk)"`
+	Conducenti     *Conducenti     `orm:"rel(fk)"`
+	Movimenti      []*Movimenti    `orm:"reverse(many)"`
+	Spese          []*Spese        `orm:"reverse(many)"`
+	Incidenti      []*Incidenti    `orm:"reverse(many)"`
+	Rifornimenti   []*Rifornimenti `orm:"reverse(many)"`
 }
 
-//Specifiche tecniche veicolo
-type VehicleDT struct {
-	Id         int              `orm:"pk;not null;auto;unique"`
-	MatriculationYear time.Time        `orm:"type(date)"`
-	NLibretto         int              `orm:"null"`
-	NTelaio           int              `orm:"null"`
-	Marca             string           `orm:"size(7)"`
-	Modello           string           `orm:"size(40)"`
-	NorEuro           int              `orm:"null"`
-	Kw                int              `orm:"null"`
-	Cilindrata        int              `orm:"null"`
-	ConsumoTeorico    int              `orm:"null"`
-	KmAnno            int              `orm:"null"`
-	CostoKm           int              `orm:"null;digits(12);decimals(4)"`
-	Pneumatici        string           `orm:"null;size(20)"`
-	VehicleDG         *VehicleDG       `orm:"reverse(one)"`
-	Allegati          []*Allegati      `orm:"rel(m2m)"`
-	Carburante        *Carburante      `orm:"rel(fk)"`
-	ContrAcquisto     *ContrAcquisto   `orm:"rel(fk)"`
-	ContrLeasing      []*ContrLeasing  `orm:"rel(m2m)"`
-	ContrNoleggio     []*ContrNoleggio `orm:"rel(m2m)"`
+//VeicoliDT contiene le specifiche tecniche veicolo
+type VeicoliDT struct {
+	ID                int             `orm:"pk;not null;auto;unique"`
+	MatriculationYear time.Time       `orm:"type(date)"`
+	NLibretto         int             `orm:"null"`
+	NTelaio           int             `orm:"null"`
+	Marca             string          `orm:"size(7)"`
+	Modello           string          `orm:"size(40)"`
+	NorEuro           int             `orm:"null"`
+	Kw                int             `orm:"null"`
+	Cilindrata        int             `orm:"null"`
+	ConsumoTeorico    int             `orm:"null"`
+	KmAnno            int             `orm:"null"`
+	CostoKm           int             `orm:"null;digits(12);decimals(4)"`
+	Pneumatici        string          `orm:"null;size(20)"`
+	VeicoliDG         *VeicoliDG      `orm:"reverse(one)"`
+	Allegati          []*Allegati     `orm:"rel(m2m)"`
+	Carburante        *Carburante     `orm:"rel(fk)"`
+	ContrAcquisti     *ContrAcquisti  `orm:"rel(fk)"`
+	ContrLeasing      []*ContrLeasing `orm:"rel(m2m)"`
+	ContrNoleggi      []*ContrNoleggi `orm:"rel(m2m)"`
 }
 
+//Carburante contiene i tipi di carburante
 type Carburante struct {
-	Id int          `orm:"pk;not null;auto;unique"`
-	Descrizione  string       `orm:"size(30)"`
-	VehicleDT    []*VehicleDT `orm:"reverse(many)"`
+	ID          int          `orm:"pk;not null;auto;unique"`
+	Descrizione string       `orm:"size(30)"`
+	VeicoliDT   []*VeicoliDT `orm:"reverse(many)"`
 }
 
-//Tipo di veicolo
-/*
-Autoveicolo
-Camion
-Ciclomotore
-Furgone
-Pullman
-Motoveicolo
-Altro
-*/
-type VehicleType struct {
-	Id   int          `orm:"pk;not null;auto;unique"`
-	Description string       `orm:"size(100)"`
-	VehicleDG   []*VehicleDG `orm:"reverse(many)"`
+//TipiVeicolo contiene i tipi di veicoli
+type TipiVeicolo struct {
+	ID          int          `orm:"pk;not null;auto;unique"`
+	Descrizione string       `orm:"size(100)"`
+	VeicoliDG   []*VeicoliDG `orm:"reverse(many)"`
 }
 
-//Tipo di settore aziendale
-/*
-Food
-Lavanderia
-Pulizia
-*/
-type Sector struct {
-	Id   int          `orm:"pk;not null;auto;unique"`
-	Description string       `orm:"size(100)"`
-	VehicleDG   []*VehicleDG `orm:"reverse(many)"`
+//Settori contiene i Settori di assegnazione
+type Settori struct {
+	ID          int          `orm:"pk;not null;auto;unique"`
+	Descrizione string       `orm:"size(100)"`
+	VeicoliDG   []*VeicoliDG `orm:"reverse(many)"`
 }
 
-//Condizione veicolo
-/*
-Buono stato
-Cattivo Stato
-Discreto Stato
-In Attesa di Alienazione
-In Attesa di Assegnazione
-In attesa di Riparazione
-Non utilizzabile
-Rubato
-Alienato
-*/
-type Condition struct {
-	Id int          `orm:"pk;not null;auto;unique"`
-	Description string       `orm:"size(100)"`
-	VehicleDG   []*VehicleDG `orm:"reverse(many)"`
+//Condizioni contiene i tipi di Condizioni veicoli
+type Condizioni struct {
+	ID          int          `orm:"pk;not null;auto;unique"`
+	Descrizione string       `orm:"size(100)"`
+	VeicoliDG   []*VeicoliDG `orm:"reverse(many)"`
 }
 
-//Impiego veicolo
-/*
-Aziendale
-Aziendale + Personale
-Personale
-*/
-type Employment struct {
-	Id int          `orm:"pk;not null;auto;unique"`
-	Description  string       `orm:"size(100)"`
-	VehicleDG    []*VehicleDG `orm:"reverse(many)"`
+//Impieghi contiene i tipi di Impieghi
+type Impieghi struct {
+	ID          int          `orm:"pk;not null;auto;unique"`
+	Descrizione string       `orm:"size(100)"`
+	VeicoliDG   []*VeicoliDG `orm:"reverse(many)"`
 }
 
-/*
-type Assegnatari struct{
-	IdAssegnatario int `orm:"auto"`
-	Nome string
-	Cognome string
-	CodiceFiscale string
-	VehicleDG []*VehicleDG`orm:"reverse(many)"`
-}*/
-
+//Conducenti contiene l'elenco dei conducenti
 type Conducenti struct {
-	Id  int             `orm:"pk;not null;auto;unique"`
+	ID            int             `orm:"pk;not null;auto;unique"`
 	Nome          string          `orm:"size(20)"`
 	Cognome       string          `orm:"size(20)"`
 	CodiceFiscale string          `orm:"null;size(16)"`
-	VehicleDG     []*VehicleDG    `orm:"reverse(many)"`
+	VeicoliDG     []*VeicoliDG    `orm:"reverse(many)"`
 	Incidenti     []*Incidenti    `orm:"reverse(many)"`
 	Movimenti     []*Movimenti    `orm:"reverse(many)"`
 	Rifornimenti  []*Rifornimenti `orm:"reverse(many)"`
-	Spesa         []*Spesa        `orm:"reverse(many)"`
+	Spese         []*Spese        `orm:"reverse(many)"`
 }
 
-//File ALlegati
+//Allegati continee l'elenco degli allegati
 type Allegati struct {
-	Id    int              `orm:"pk;not null;auto;unique"`
+	ID            int              `orm:"pk;not null;auto;unique"`
 	Percorso      string           `orm:"size(100);not null;"`
 	Descrizione   string           `orm:"size(100);not null;"`
-	ContrAcquisto []*ContrAcquisto `orm:"reverse(many)"`
+	ContrAcquisti []*ContrAcquisti `orm:"reverse(many)"`
 	ContrLeasing  []*ContrLeasing  `orm:"reverse(many)"`
-	ContrNoleggio []*ContrNoleggio `orm:"reverse(many)"`
+	ContrNoleggi  []*ContrNoleggi  `orm:"reverse(many)"`
 	Incidenti     []*Incidenti     `orm:"reverse(many)"`
 	Movimenti     []*Movimenti     `orm:"reverse(many)"`
 	Multe         []*Multe         `orm:"reverse(many)"`
 	Rifornimenti  []*Rifornimenti  `orm:"reverse(many)"`
-	Spesa         []*Spesa         `orm:"reverse(many)"`
-	VehicleDT     []*VehicleDT     `orm:"reverse(many)"`
+	Spese         []*Spese         `orm:"reverse(many)"`
+	VeicoliDT     []*VeicoliDT     `orm:"reverse(many)"`
 }
 
-//Contratto di acquisto
-type ContrAcquisto struct {
-	Id   int          `orm:"pk;not null;auto;unique"`
+//ContrAcquisti contiene i contratti di acquisto
+type ContrAcquisti struct {
+	ID                int          `orm:"pk;not null;auto;unique"`
 	NContratto        string       `orm:"unique;not null;size(20)"`
 	DataAcq           time.Time    `orm:"null;type(date)"`
 	Importo           float64      `orm:"null;digits(12);decimals(4)"`
@@ -190,33 +153,33 @@ type ContrAcquisto struct {
 	Note              string       `orm:"null;size(100)"`
 	Allegati          []*Allegati  `orm:"rel(m2m)"`
 	Fornitori         *Fornitori   `orm:"rel(fk)"`
-	VehicleDT         []*VehicleDT `orm:"reverse(many)"`
+	VeicoliDT         []*VeicoliDT `orm:"reverse(many)"`
 }
 
-//Contratto di leasing
+//ContrLeasing contiene i Contratti di leasing
 type ContrLeasing struct {
-	Id int          `orm:"pk;not null;auto;unique"`
-	NContratto      string       `orm:"unique;not null;size(20)"`
-	DataCont        time.Time    `orm:"auto_now_add;type(date)"`
-	PrimaRata       float64      `orm:"null;digits(12);decimals(4)"`
-	RataSucc        float64      `orm:"null;digits(12);decimals(4)"`
-	NRate           int          `orm:"null"`
-	Riscatto        float64      `orm:"null;digits(12);decimals(4)"`
-	DataRiscatto    time.Time    `orm:"null;type(date)"`
-	ImportoTot      float64      `orm:"null;digits(12);decimals(4)"`
-	FineCont        time.Time    `orm:"null;type(date)"`
-	FineGaranzia    time.Time    `orm:"null;type(date)"`
-	KmInizioGest    int          `orm:"null"`
-	KmFineGest      int          `orm:"null"`
-	Note            string       `orm:"null;size(100)"`
-	Allegati        []*Allegati  `orm:"rel(m2m)"`
-	Fornitori       *Fornitori   `orm:"rel(fk)"`
-	VehicleDT       []*VehicleDT `orm:"reverse(many)"`
+	ID           int          `orm:"pk;not null;auto;unique"`
+	NContratto   string       `orm:"unique;not null;size(20)"`
+	DataCont     time.Time    `orm:"auto_now_add;type(date)"`
+	PrimaRata    float64      `orm:"null;digits(12);decimals(4)"`
+	RataSucc     float64      `orm:"null;digits(12);decimals(4)"`
+	NRate        int          `orm:"null"`
+	Riscatto     float64      `orm:"null;digits(12);decimals(4)"`
+	DataRiscatto time.Time    `orm:"null;type(date)"`
+	ImportoTot   float64      `orm:"null;digits(12);decimals(4)"`
+	FineCont     time.Time    `orm:"null;type(date)"`
+	FineGaranzia time.Time    `orm:"null;type(date)"`
+	KmInizioGest int          `orm:"null"`
+	KmFineGest   int          `orm:"null"`
+	Note         string       `orm:"null;size(100)"`
+	Allegati     []*Allegati  `orm:"rel(m2m)"`
+	Fornitori    *Fornitori   `orm:"rel(fk)"`
+	VeicoliDT    []*VeicoliDT `orm:"reverse(many)"`
 }
 
-//Contratto di noleggio
-type ContrNoleggio struct {
-	Id      int          `orm:"pk;not null;auto;unique"`
+//ContrNoleggi contiene i Contratti di noleggio
+type ContrNoleggi struct {
+	ID                   int          `orm:"pk;not null;auto;unique"`
 	NContratto           string       `orm:"unique;not null;size(20)"`
 	DataCont             time.Time    `orm:"null;type(date)"`
 	DataInizio           time.Time    `orm:"null;type(date)"`
@@ -236,55 +199,50 @@ type ContrNoleggio struct {
 	Note                 string       `orm:"null;size(100)"`
 	Allegati             []*Allegati  `orm:"rel(m2m)"`
 	Fornitori            *Fornitori   `orm:"rel(fk)"`
-	VehicleDT            []*VehicleDT `orm:"reverse(many)"`
+	VeicoliDT            []*VeicoliDT `orm:"reverse(many)"`
 }
 
-//Fornitori
+//Fornitori contiene l'elenco fornitori
 type Fornitori struct {
-	Id   int              `orm:"pk;not null;auto;unique"`
+	ID            int              `orm:"pk;not null;auto;unique"`
 	Descrizione   string           `orm:"size(100)"`
 	PI            string           `orm:"null"`
-	ContrAcquisto []*ContrAcquisto `orm:"reverse(many)"`
+	ContrAcquisti []*ContrAcquisti `orm:"reverse(many)"`
 	ContrLeasing  []*ContrLeasing  `orm:"reverse(many)"`
-	ContrNoleggio []*ContrNoleggio `orm:"reverse(many)"`
+	ContrNoleggi  []*ContrNoleggi  `orm:"reverse(many)"`
 	Rifornimenti  []*Rifornimenti  `orm:"reverse(many)"`
 }
 
-//Incidenti
+//Incidenti contiene l'elenco degli incidenti
 type Incidenti struct {
-	Id						int						`orm:"pk;not null;auto;unique"`
-	Data					time.Time				`orm:"type(datetime)"`
-	Assicurazione			string					`orm:"size(100)"`
-	ImportoDanno			float64					`orm:"null;digits(12);decimals(4)"`
-	FranchigiaPagata		float64					`orm:"null;digits(12);decimals(4)"`
-	ImportoLiquidato		float64					`orm:"null;digits(12);decimals(4)"`
-	DataChiusura			time.Time				`orm:"null;type(datetime)"`
-	Feriti					bool					`orm:"null"`
-	AddebitoConducente		bool					`orm:"null"`
-	Note					string					`orm:"null;size(100)"`
-	Descrizione				string					`orm:"null;size(100)"`
-	ControparteIncidenti	*ControparteIncidenti	`orm:"rel(one)"`
-	Conducenti				*Conducenti				`orm:"rel(fk)"`
-	Allegati				[]*Allegati				`orm:"rel(m2m)"`
-	VehicleDG				[]*VehicleDG			`orm:"rel(m2m)"`
-	Responsabilita			*Responsabilita			`orm:"rel(fk)"`
+	ID                   int                   `orm:"pk;not null;auto;unique"`
+	Data                 time.Time             `orm:"type(datetime)"`
+	Assicurazione        string                `orm:"size(100)"`
+	ImportoDanno         float64               `orm:"null;digits(12);decimals(4)"`
+	FranchigiaPagata     float64               `orm:"null;digits(12);decimals(4)"`
+	ImportoLiquidato     float64               `orm:"null;digits(12);decimals(4)"`
+	DataChiusura         time.Time             `orm:"null;type(datetime)"`
+	Feriti               bool                  `orm:"null"`
+	AddebitoConducente   bool                  `orm:"null"`
+	Note                 string                `orm:"null;size(100)"`
+	Descrizione          string                `orm:"null;size(100)"`
+	ContropartiIncidenti *ContropartiIncidenti `orm:"rel(one)"`
+	Conducenti           *Conducenti           `orm:"rel(fk)"`
+	Allegati             []*Allegati           `orm:"rel(m2m)"`
+	VeicoliDG            []*VeicoliDG          `orm:"rel(m2m)"`
+	Responsabilita       *Responsabilita       `orm:"rel(fk)"`
 }
 
-//Responsabilit Incidenti
-/*
-Concorso di colpa
-Da accertare
-Della controparte
-Propria
-*/
+//Responsabilita Incidenti
 type Responsabilita struct {
-	Id int        `orm:"pk;not null;auto;unique"`
-	Descrizione      string     `orm:"size(100)"`
-	Incidenti        []*Incidenti `orm:"reverse(many)"`
+	ID          int          `orm:"pk;not null;auto;unique"`
+	Descrizione string       `orm:"size(100)"`
+	Incidenti   []*Incidenti `orm:"reverse(many)"`
 }
 
-type ControparteIncidenti struct {
-	Id int        `orm:"pk;not null;auto;unique"`
+//ContropartiIncidenti contiene i dati delle controparti incidenti
+type ContropartiIncidenti struct {
+	ID            int        `orm:"pk;not null;auto;unique"`
 	Assicurazione string     `orm:"null;size(100)"`
 	Targa         string     `orm:"null;size(7)"`
 	Marca         string     `orm:"null;size(30)"`
@@ -295,24 +253,23 @@ type ControparteIncidenti struct {
 	Incidenti     *Incidenti `orm:"reverse(one)"`
 }
 
-//MOVIMENTI
-
+//Movimenti contiene i movimenti delle auto
 type Movimenti struct {
-	Id  int			`orm:"pk;not null;auto;unique"`
-	DataInizio   time.Time		`orm:"type(datetime)"`
-	KmInizio     int			`orm:"unique;not null"`
-	Destinazione string			`orm:"not null;size(100)"`
-	DataFine     time.Time		`orm:"type(datetime)"`
-	KmFine       int			`orm:"not null"`
-	Note         string			`orm:"null;size(100)"`
-	Conducenti   *Conducenti	`orm:"rel(fk)"`
-	Allegati     []*Allegati	`orm:"rel(m2m)"`
-	VehicleDG    []*VehicleDG   `orm:"rel(m2m)"`
+	ID           int          `orm:"pk;not null;auto;unique"`
+	DataInizio   time.Time    `orm:"type(datetime)"`
+	KmInizio     int          `orm:"unique;not null"`
+	Destinazione string       `orm:"not null;size(100)"`
+	DataFine     time.Time    `orm:"type(datetime)"`
+	KmFine       int          `orm:"not null"`
+	Note         string       `orm:"null;size(100)"`
+	Conducenti   *Conducenti  `orm:"rel(fk)"`
+	Allegati     []*Allegati  `orm:"rel(m2m)"`
+	VeicoliDG    []*VeicoliDG `orm:"rel(m2m)"`
 }
 
-//MULTE
+//Multe contiene i dati delle auto
 type Multe struct {
-	Id            int       `orm:"pk;not null;auto;unique"`
+	ID                 int       `orm:"pk;not null;auto;unique"`
 	Data               time.Time `orm:"type(datetime)"`
 	Importo            float64   `orm:"digits(12);decimals(4)"`
 	AddebitoConducente bool      `orm:"null"`
@@ -324,96 +281,63 @@ type Multe struct {
 	Note               string            `orm:"null;size(100)"`
 	Conducenti         *Conducenti       `orm:"rel(fk)"`
 	Allegati           []*Allegati       `orm:"rel(m2m)"`
-	TipoInfrazione     []*TipoInfrazione `orm:"rel(m2m)"`
-	VehicleDG         	[]*VehicleDG       		`orm:"rel(m2m)"`
+	TipiInfrazione     []*TipiInfrazione `orm:"rel(m2m)"`
+	VeicoliDG          []*VeicoliDG      `orm:"rel(m2m)"`
 }
 
-/*
-Accesso in senso vietato
-Cinture di sicurezza non allacciate
-Eccesso di velocità
-Guida contromano
-Guida pericolosa
-Positivo a controlllo alcool
-Precedenza non rispettata
-Semaforo rosso
-Sosta vietata
-Utilizzo di telefono cellulare
-Violazione di corsia preferenziale
-Violazione di ztl
-Altro
-*/
-type TipoInfrazione struct {
-	Id int      `orm:"pk;not null;auto;unique"`
-	Descrizione      string   `orm:"size(100)"`
-	Multe            []*Multe `orm:"reverse(many)"`
+//TipiInfrazione contiene i tipi di infrazioni
+type TipiInfrazione struct {
+	ID          int      `orm:"pk;not null;auto;unique"`
+	Descrizione string   `orm:"size(100)"`
+	Multe       []*Multe `orm:"reverse(many)"`
 }
 
-//RIFORNIMENTO
-
+//Rifornimenti contiene i dati relativi ai rifornimenti
 type Rifornimenti struct {
-	Id int       `orm:"pk;not null;auto;unique"`
-	Data           time.Time `orm:"type(datetime)"`
-	Km             int
-	Importo        float64 `orm:"digits(12);decimals(4)"`
-	CostoLitro     float64 `orm:"digits(12);decimals(4)"`
-	Litri          int
-	Note           string      `orm:"null;size(100)"`
-	Fornitori      *Fornitori  `orm:"rel(fk)"`
-	Conducenti     *Conducenti `orm:"rel(fk)"`
-	Allegati       []*Allegati `orm:"rel(m2m)"`
-	VehicleDG         	[]*VehicleDG       		`orm:"rel(m2m)"`
+	ID         int       `orm:"pk;not null;auto;unique"`
+	Data       time.Time `orm:"type(datetime)"`
+	Km         int
+	Importo    float64 `orm:"digits(12);decimals(4)"`
+	CostoLitro float64 `orm:"digits(12);decimals(4)"`
+	Litri      int
+	Note       string       `orm:"null;size(100)"`
+	Fornitori  *Fornitori   `orm:"rel(fk)"`
+	Conducenti *Conducenti  `orm:"rel(fk)"`
+	Allegati   []*Allegati  `orm:"rel(m2m)"`
+	VeicoliDG  []*VeicoliDG `orm:"rel(m2m)"`
 }
 
-//SPESA
-
-/*
-Alienazione
-Assicurazione
-Bollo
-Contratto Canone
-Contratto varie
-Lavaggio
-Manutenzione ordinaria
-Pneumatici
-Revisione
-Riparazione per sinistro
-Riparazione straordinaria
-Varie
-*/
-type TipoSpesa struct {
-	Id			int		`orm:"pk;not null;auto;unique"`
-	Descrizione string	`orm:"size(100)"`
-	Spesa       []*Spesa	`orm:"reverse(many)"`
+//TipiSpesa contiene i tipi di Spese
+type TipiSpesa struct {
+	ID          int      `orm:"pk;not null;auto;unique"`
+	Descrizione string   `orm:"size(100)"`
+	Spese       []*Spese `orm:"reverse(many)"`
 }
 
-type Spesa struct {
-	Id      		 int       		`orm:"pk;not null;auto;unique"`
-	Data             time.Time 		`orm:"auto_now_add;type(datetime)"`
+//Spese contiene i dati relativi alle Spese
+type Spese struct {
+	ID               int       `orm:"pk;not null;auto;unique"`
+	Data             time.Time `orm:"auto_now_add;type(datetime)"`
 	Km               int
-	Importo          float64     	`orm:"digits(12);decimals(4)"`
-	Descrizione      string      	`orm:"size(100)"`
-	NDocumento       string      	`orm:"null;size(20)"`
-	DataDocu         time.Time   	`orm:"null;type(datetime)"`
-	DataProsScadenza time.Time   	`orm:"null;type(datetime)"`
-	KmProxScadenza   int         	`orm:"null"`
-	Note             string      	`orm:"null;size(100)"`
-	TipoSpesa        *TipoSpesa  	`orm:"rel(fk)"`
-	Fornitori        *Fornitori  	`orm:"rel(fk)"`
-	Conducenti       *Conducenti 	`orm:"rel(fk)"`
-	Allegati         []*Allegati 	`orm:"rel(m2m)"`
-	VehicleDG        []*VehicleDG  	`orm:"rel(m2m)"`
-
+	Importo          float64      `orm:"digits(12);decimals(4)"`
+	Descrizione      string       `orm:"size(100)"`
+	NDoc             string       `orm:"null;size(20)"`
+	DataDoc          time.Time    `orm:"null;type(datetime)"`
+	DataProsScadenza time.Time    `orm:"null;type(datetime)"`
+	KmProsScadenza   int          `orm:"null"`
+	Note             string       `orm:"null;size(100)"`
+	TipiSpesa        *TipiSpesa   `orm:"rel(fk)"`
+	Fornitori        *Fornitori   `orm:"rel(fk)"`
+	Conducenti       *Conducenti  `orm:"rel(fk)"`
+	Allegati         []*Allegati  `orm:"rel(m2m)"`
+	VeicoliDG        []*VeicoliDG `orm:"rel(m2m)"`
 }
-
-
-
 
 //*************FINE DB AUTOMEZZI****************
 func init() {
 	//Login & App Manager DB
 	orm.RegisterModel(new(AuthUser), new(AuthApp))
 	//Automezzi DB
-	orm.RegisterModel(new(VehicleDG), new(VehicleDT), new(Carburante), new(VehicleType), new(Sector), new(Condition), new(Employment), new(Conducenti), new(Allegati), new(ContrAcquisto), new(ContrLeasing), new(ContrNoleggio), new(Fornitori), new(Incidenti), new(Responsabilita))
-	orm.RegisterModel(new(ControparteIncidenti), new(Movimenti), new(Multe), new(TipoInfrazione), new(Rifornimenti), new(TipoSpesa), new(Spesa) )
+	orm.RegisterModel(new(VeicoliDG), new(VeicoliDT), new(Carburante), new(TipiVeicolo), new(Settori), new(Condizioni), new(Impieghi), new(Conducenti), new(Allegati), new(ContrAcquisti), new(ContrLeasing), new(ContrNoleggi), new(Fornitori), new(Incidenti), new(Responsabilita))
+	orm.RegisterModel(new(ContropartiIncidenti), new(Movimenti), new(Multe), new(TipiInfrazione), new(Rifornimenti), new(TipiSpesa), new(Spese))
 }

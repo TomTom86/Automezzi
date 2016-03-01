@@ -88,7 +88,7 @@ func (c *MainController) Manage() {
 		var users []models.AuthUser
 
 		o.QueryTable("auth_user")
-		//num, err := o.Raw("SELECT id, first, last, email, id_key FROM auth_user",).QueryRows(&users)
+		//num, err := o.Raw("SELECT id, first, last, email, idkey FROM auth_user",).QueryRows(&users)
 		if err != nil {
 			flash.Notice("Errore, contattare l'amministratore del sito")
 			flash.Store(&c.Controller)
@@ -102,7 +102,7 @@ func (c *MainController) Manage() {
 		rows := "<tr><center><td>ID</td><td>NOME</td><td>COGNOME</td><td>EMAIL</td><td>MODIFICA</td></center></tr>"
 		for i := range users {
 			rows += fmt.Sprintf("<tr><td>%d</td>"+
-				"<td>%s</td><td>%s</td><td>%s</td><td><center><a href='http://%s/manage/user/%s' class=\"user\"> </a></center></td></tr>", users[i].Id, users[i].First, users[i].Last, users[i].Email, appcfgdomainname, users[i].Id_key)
+				"<td>%s</td><td>%s</td><td>%s</td><td><center><a href='http://%s/manage/user/%s' class=\"user\"> </a></center></td></tr>", users[i].ID, users[i].First, users[i].Last, users[i].Email, appcfgdomainname, users[i].IDkey)
 		}
 		c.Data["Rows"] = template.HTML(rows)
 	}
@@ -142,7 +142,7 @@ func (c *MainController) Manage() {
 	}
 	for i := range users {
 		rows += fmt.Sprintf("<tr><td>%d</td>"+
-			"<td>%s</td><td>%s</td><td>%s</td><td><center><a href='http://%s/manage/user/%s' class=\"user\"> </a></center></td></tr>", users[i].Id, users[i].First, users[i].Last, users[i].Email, appcfgdomainname, users[i].Id_key)
+			"<td>%s</td><td>%s</td><td>%s</td><td><center><a href='http://%s/manage/user/%s' class=\"user\"> </a></center></td></tr>", users[i].ID, users[i].First, users[i].Last, users[i].Email, appcfgdomainname, users[i].IDkey)
 	}
 	c.Data["Rows"] = template.HTML(rows)
 
@@ -195,11 +195,11 @@ func (c *MainController) UsersManage() {
 
 	o := orm.NewOrm()
 	o.Using("default")
-	var idKey string
-	idKey = c.Ctx.Input.Param(":parms")
-	fmt.Println("key: ", idKey)
-	user := models.AuthUser{Id_key: c.Ctx.Input.Param(":parms")}
-	err := o.Read(&user, "Id_key")
+	var IDkey string
+	IDkey = c.Ctx.Input.Param(":parms")
+	fmt.Println("key: ", IDkey)
+	user := models.AuthUser{IDkey: c.Ctx.Input.Param(":parms")}
+	err := o.Read(&user, "IDKey")
 	if err != nil {
 		flash.Error("Internal error")
 		flash.Store(&c.Controller)
@@ -213,8 +213,8 @@ func (c *MainController) UsersManage() {
 		fmt.Println("ERROR:", err)
 	}
 
-	userAPP := models.AuthApp{Id: user.Id}
-	err = o.Read(&userAPP, "Id")
+	userAPP := models.AuthApp{ID: user.ID}
+	err = o.Read(&userAPP, "ID")
 	if err != nil {
 		flash.Error("Internal error")
 		flash.Store(&c.Controller)
@@ -250,9 +250,9 @@ func (c *MainController) UsersManage() {
 			panic("unrecognized escape character")
 		}
 
-		fmt.Println(user.Block_controll)
+		fmt.Println(user.BlockControll)
 		var checkbloccato string
-		if user.Block_controll >= 3 {
+		if user.BlockControll >= 3 {
 			checkbloccato += fmt.Sprintf("<td><input type=\"checkbox\" name=\"blocco\" value=\"bloccato\" checked=\"checked\"> BLOCCATO<br></td>")
 			//<td><input type="checkbox" name="apps" value="bloccato"> BLOCCATO<br></td>
 		} else {
@@ -338,13 +338,13 @@ func (c *MainController) UsersManage() {
 		user.First = first
 		user.Last = last
 		user.Email = email
-		user.Last_edit_date = time.Now()
+		user.LastEditDate = time.Now()
 		user.Group = ConvertInt(userlvl)
 
 		if stringInSlice("bloccato", blocco) {
-			user.Block_controll = 3
+			user.BlockControll = 3
 		} else {
-			user.Block_controll = 0
+			user.BlockControll = 0
 		}
 		if stringInSlice("automezzi", apps) {
 			userAPP.Automezzi = true

@@ -25,7 +25,7 @@ func (c *MainController) activeContent(view string) {
 		m := sess.(map[string]interface{})
 		c.Data["First"] = m["first"]
 		c.Data["Admin"] = m["admin"]
-		c.Data["ID_key"] = m["id_key"]
+		c.Data["IDkey"] = m["idkey"]
 		c.Data["Automezzi"] = m["automezzi"]
 	}
 }

@@ -34,7 +34,7 @@ func (c *AdminController) activeAdminContent(view string) {
 		m := sess.(map[string]interface{})
 		c.Data["First"] = m["first"]
 		c.Data["Admin"] = m["admin"]
-		c.Data["ID_key"] = m["id_key"]
+		c.Data["IDkey"] = m["idkey"]
 	}
 }
 
@@ -146,11 +146,11 @@ func (c *AdminController) Index() {
 	}
 	domainname := c.Data["domainname"]
 	for x := range users {
-		i := strings.Index(users[x].Reg_date.String(), " ")
+		i := strings.Index(users[x].RegDate.String(), " ")
 		rows += fmt.Sprintf("<tr><td><a href='http://%s/appadmin/update/%s!%s'>%d</a></td>"+
 			"<td>%s</td><td>%s</td><td>%s</td><td>%s...</td><td>%s</td><td>%s</td><td>%s</td></tr>", domainname, users[x].Email, parms,
-			users[x].Id, users[x].First, users[x].Last, users[x].Email, users[x].Password[:20],
-			users[x].Id_key, users[x].Reg_date.String()[:i], users[x].Reset_key)
+			users[x].ID, users[x].First, users[x].Last, users[x].Email, users[x].Password[:20],
+			users[x].IDkey, users[x].RegDate.String()[:i], users[x].ResetKey)
 	}
 	c.Data["Rows"] = template.HTML(rows)
 
@@ -220,14 +220,14 @@ func (c *AdminController) Add() {
 
 		//create user and userApp models
 		userAPP := models.AuthApp{Automezzi: false, Servizi: false}
-		user := models.AuthUser{First: u.First, Last: u.Last, Email: u.Email, Is_approved: false, Group: 0, AuthApp: &userAPP}
+		user := models.AuthUser{First: u.First, Last: u.Last, Email: u.Email, IsApproved: false, Group: 0, AuthApp: &userAPP}
 
 		// Convert password hash to string
 		user.Password = hex.EncodeToString(h.Hash) + hex.EncodeToString(h.Salt)
 
 		// Add user to database with new uuid and send verification email
 		key := uuid.NewV4()
-		user.Id_key = key.String()
+		user.IDkey = key.String()
 
 		_, err = o.Insert(&userAPP)
 		if err != nil {
@@ -250,16 +250,16 @@ func (c *AdminController) Add() {
 }
 
 type authUser struct {
-	Id          int    `form:"id"`
-	First       string `form:"first" valid:"Required"`
-	Last        string `form:"last"`
-	Email       string `form:"email" valid:"Email"`
-	Password    string `form:"password" valid:"MinSize(6)"`
-	Id_key      string `form:"id_key"`
-	Is_approved bool
-	Reg_date    string `form:"reg_date"` // ParseForm cannot deal with time.Time in the form definition
-	Reset_key   string `form:"reset_key"`
-	Delete      string `form:"delete,checkbox"`
+	ID         int    `form:"id"`
+	First      string `form:"first" valid:"Required"`
+	Last       string `form:"last"`
+	Email      string `form:"email" valid:"Email"`
+	Password   string `form:"password" valid:"MinSize(6)"`
+	IDkey      string `form:"idkey"`
+	IsApproved bool
+	RegDate    string `form:"regdate"` // ParseForm cannot deal with time.Time in the form definition
+	ResetKey   string `form:"resetkey"`
+	Delete     string `form:"delete,checkbox"`
 }
 
 //Update account information
@@ -333,8 +333,8 @@ func (c *AdminController) Update() {
 		user.First = u.First
 		user.Last = u.Last
 		user.Email = u.Email
-		user.Id_key = u.Id_key
-		user.Reset_key = u.Reset_key
+		user.IDkey = u.IDkey
+		user.ResetKey = u.ResetKey
 
 		o := orm.NewOrm()
 		o.Using("default")
