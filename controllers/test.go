@@ -27,7 +27,7 @@ func (c *MainController) Test() {
 
     o := orm.NewOrm()
     o.Using("default")
-   
+ /*  
    //CONDITION
     var maps []orm.Params
     num, err := o.QueryTable("condition").Values(&maps, "id")

@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	pk "acme3/utilities/pbkdf2"
+	pk "automezzi/utilities/pbkdf2"
 	"automezzi/models"
 	"encoding/hex"
 	"fmt"
