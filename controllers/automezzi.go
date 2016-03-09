@@ -16,6 +16,12 @@ import (
     //"reflect"
 )
 
+
+func (c *MainController) Acquisto() {
+    	c.activeContent("appAutomezzi/conducenti")
+}
+
+
 func test() {
 	fmt.Println("prova")
 	/*	
@@ -55,3 +61,4 @@ func test() {
 	}
 	*/
 }
+

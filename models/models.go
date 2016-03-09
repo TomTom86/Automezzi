@@ -123,7 +123,7 @@ type Conducenti struct {
 	Movimenti     []*Movimenti    `orm:"reverse(many)"`
 	Rifornimenti  []*Rifornimenti `orm:"reverse(many)"`
 	Spese         []*Spese        `orm:"reverse(many)"`
-    AuthApp         *AuthApp      `orm:"rel(fk)"`
+    AuthApp         *AuthApp      `orm:"rel(one)"`
 }
 
 //Allegati continee l'elenco degli allegati

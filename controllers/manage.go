@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	pk "acme3/utilities/pbkdf2"
+	pk "automezzi/utilities/pbkdf2"
 	"automezzi/models"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"

@@ -1,12 +1,12 @@
 package controllers
 
 import (
-	"automezzi/models"
+	//"automezzi/models"
 	//pk "automezzi/utilities/pbkdf2wrapper"
 	//"encoding/hex"
 	"fmt"
 	//"github.com/astaxie/beego"
-	"github.com/astaxie/beego/orm"
+	//"github.com/astaxie/beego/orm"
 	//"github.com/astaxie/beego/validation"
 	//"github.com/twinj/uuid"
 	//"html/template"
@@ -15,7 +15,54 @@ import (
 	//"time"
     //"reflect"
 )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 //Test is for experiment
+
+/*
+func initTable(o orm.Ormer, table string,Array []string, model *models){
+    var maps []orm.Params
+    num, err := o.QueryTable(table).Values(&maps, "id")
+    if err != nil {
+        fmt.Println("Errore inizializzazione tabella "+table)
+        return
+    } 
+    if num == 0 {
+        Array := []string{"Buono stato","Cattivo Stato", "Discreto Stato", "In Attesa di Alienazione","In Attesa di Assegnazione", "In attesa di Riparazione","Non utilizzabile", "Rubato", "Alienato"}
+
+        for i := range Array { 
+            condition := models.Condition{Id: i+1,Description : Array[i]}
+            
+            _, err = o.Insert(&condition)
+            if err != nil {
+               fmt.Println(err)
+                return
+            }
+            
+        }
+    }
+    
+}
+*/
+
+//Test is a test page
 func (c *MainController) Test() {
 	c.activeContent("test/test")
 
@@ -24,207 +71,7 @@ func (c *MainController) Test() {
     if err != nil {
 		fmt.Println(err)
 	}
-
-    o := orm.NewOrm()
-    o.Using("default")
-   
-   //CONDITION
-    var maps []orm.Params
-    num, err := o.QueryTable("condition").Values(&maps, "id")
-    if err != nil {
-        fmt.Println("Errore inizializzazione tabella Condition")
-        return
-    }
-    fmt.Println("Condition ",num)    
-    if num == 0 {
-        conditionArray := []string{"Buono stato","Cattivo Stato", "Discreto Stato", "In Attesa di Alienazione","In Attesa di Assegnazione", "In attesa di Riparazione","Non utilizzabile", "Rubato", "Alienato"}
-
-        for i := range conditionArray { 
-            condition := models.Condition{Id: i+1,Description : conditionArray[i]}
-            
-            _, err = o.Insert(&condition)
-            if err != nil {
-                fmt.Println("Errore autorizzazioni applicazioni")
-                return
-            }
-            
-        }
-    }
-    num = 0 
-    err = nil
-    //SPESA
-    num, err = o.QueryTable("spesa").Values(&maps, "id")
-    fmt.Println(num)
-    if err != nil {
-        fmt.Println("Errore inizializzazione tabella spesa")
-        return
-    }
-    if num == 0 {
-     
-        spesaArray := []string{ 1: "Alienazione", "Assicurazione", "Bollo", "Contratto Canone", "Contratto varie", "Lavaggio", "Manutenzione ordinaria", "Pneumatici", "Revisione", "Riparazione per sinistro", "Riparazione straordinaria", "Varie"}    
-        for i := range spesaArray {
-        
-            spesa := models.Spesa{Id: i+1,Descrizione : spesaArray[i]}
-            
-            _, err = o.Insert(&spesa)
-            if err != nil {
-                fmt.Println("Errore autorizzazioni applicazioni")
-                return
-            }
-            
-        }  
-    }        
-    num = 0 
-    err = nil
-    
-    //TIPO VEICOLO
-
-    num, err = o.QueryTable("vehicle_type").Values(&maps, "id")
-    if err != nil {
-        fmt.Println("Errore inizializzazione tabella vehicle_type")
-        return
-    }
-    if num == 0 {    
-        tipoVeicoloArray := []string{ "Autoveicolo", "Camion", "Bollo", "Ciclomotore", "Furgone", "Pullman", "Motoveicolo","Altro"}    
-                                            
-        for i := range tipoVeicoloArray {
-        
-            tipoVeicolo := models.VehicleType{Id: i+1,Description : tipoVeicoloArray[i]}
-            _, err = o.Insert(&tipoVeicolo)
-            if err != nil {
-                fmt.Println("Errore autorizzazioni applicazioni")
-                return
-            }
-            
-        } 
-    }        
-    num = 0 
-    err = nil
-    
-    //Sector
-
-    num, err = o.QueryTable("sector").Values(&maps, "id")
-    if err != nil {
-        fmt.Println("Errore inizializzazione tabella Sector")
-        return
-    }
-    if num == 0 {                 
-    
-        sectorArray := []string{ "Food", "Lavanderia", "Pulizia", "Marketing", "Officina", "Agenti", "Direzione"}    
-                                            
-        for i := range sectorArray {
-        
-            sector := models.Sector{Id: i+1,Description : sectorArray[i]}
-            _, err = o.Insert(&sector)
-            if err != nil {
-                fmt.Println("Errore autorizzazioni applicazioni")
-                return
-            }
-            
-        }    
-    }        
-    num = 0 
-    err = nil
-    
-    //Employment
-
-    num, err = o.QueryTable("employment").Values(&maps, "id")
-    if err != nil {
-        fmt.Println("Errore inizializzazione tabella Employment")
-        return
-    }
-    if num == 0 {          
-
-        impiegoArray := []string{ "Aziendale", "Aziendale + Personale", "Personale"}    
-                                            
-        for i := range impiegoArray {
-        
-            impiego := models.Employment{Id: i+1,Description : impiegoArray[i]}
-            _, err = o.Insert(&impiego)
-            if err != nil {
-                fmt.Println("Errore autorizzazioni applicazioni")
-                return
-            }
-            
-        }
-    }        
-    num = 0 
-    err = nil
-    
-    //Responsabilita
-
-    num, err = o.QueryTable("responsabilita").Values(&maps, "id")
-    if err != nil {
-        fmt.Println("Errore inizializzazione tabella Responsabilita")
-        return
-    }
-    if num == 0 {              
-
-        responsabilitaArray := []string{ "Concorso di colpa", "Da accertare", "Della controparte", "Propria"}    
-                                            
-        for i := range responsabilitaArray {
-        
-            responsabilita := models.Responsabilita{Id: i+1,Descrizione : responsabilitaArray[i]}
-            _, err = o.Insert(&responsabilita)
-            if err != nil {
-                fmt.Println("Errore autorizzazioni applicazioni")
-                return
-            }
-            
-        }  
-    }        
-    num = 0 
-    err = nil
-    
-    //tipo_infrazione
-
-    num, err = o.QueryTable("tipo_infrazione").Values(&maps, "id")
-    if err != nil {
-        fmt.Println("Errore inizializzazione tabella tipo_infrazione")
-        return
-    }
-    if num == 0 {            
-
-        tipoInfrazioneArray := []string{ 1: "Accesso in senso vietato", "Accesso in senso vietato", "Cinture di sicurezza non allacciate", "Eccesso di velocità", "Guida contromano", "Guida pericolosa", "Positivo a controlllo alcool", "Precedenza non rispettata", "Semaforo rosso", "Sosta vietata", "Utilizzo di telefono cellulare", "Violazione di corsia preferenziale", "Violazione di ztl", "Altro"}    
-        
-        for i := range tipoInfrazioneArray {
-        
-            tipoInfrazione := models.TipoInfrazione{Id: i+1,Descrizione : tipoInfrazioneArray[i]}
-            _, err = o.Insert(&tipoInfrazione)
-            if err != nil {
-                fmt.Println("Errore autorizzazioni applicazioni")
-                return
-            }
-            
-        }
-    }        
-    num = 0 
-    err = nil
-    
-    //Carburante
-
-    num, err = o.QueryTable("carburante").Values(&maps, "id")
-    if err != nil {
-        fmt.Println("Errore inizializzazione tabella Carburante")
-        return
-    }
-    if num == 0 {              
-
-        carburanteArray := []string{ 1: "Benzina", "Diesel", "Gas", "Metano"}  
-        
-        for i := range carburanteArray {
-        
-            carburante := models.Carburante{Id: i+1,Descrizione : carburanteArray[i]}
-            _, err = o.Insert(&carburante)
-            if err != nil {
-                fmt.Println("Errore autorizzazioni applicazioni")
-                return
-            }
-            
-        } 
-    }        
-    num = 0 
-    err = nil       
+    //o := orm.NewOrm()
 
 /*   
     
