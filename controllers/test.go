@@ -17,24 +17,6 @@ import (
 )
 
 
-<<<<<<< HEAD
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 //Test is for experiment
 
 /*
