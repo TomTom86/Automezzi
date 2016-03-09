@@ -17,6 +17,7 @@ import (
 )
 
 
+<<<<<<< HEAD
 
 
 
@@ -38,6 +39,12 @@ import (
 
 /*
 func initTable(o orm.Ormer, table string,Array []string, model *models){
+=======
+    o := orm.NewOrm()
+    o.Using("default")
+ /*  
+   //CONDITION
+>>>>>>> e8cce6705d6232d2d7df9b9fc51b6e36457436d6
     var maps []orm.Params
     num, err := o.QueryTable(table).Values(&maps, "id")
     if err != nil {
