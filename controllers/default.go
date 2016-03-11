@@ -26,6 +26,7 @@ func (c *MainController) activeContent(view string) {
 		c.Data["First"] = m["first"]
 		c.Data["Admin"] = m["admin"]
 		c.Data["IDkey"] = m["idkey"]
+        fmt.Println(m["automezzi"])
 		c.Data["Automezzi"] = m["automezzi"]
 	}
 }

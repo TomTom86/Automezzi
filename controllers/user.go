@@ -24,13 +24,13 @@ var (
 )
 
 //TODO la gestione dei permessi utente non è molto sicura, forse è meglio dividere i permessi in una tabella a parte
-
+// BUG** LE MODIFICHE EFFETTUATE ALLE APPLICAZIONI E QUINDI AL MENU SONO VALIDE SOLO DOPO AVER RILOGGATO
 //Login func manage User's login
 func (c *MainController) Login() {
 	c.activeContent("user/login")
 	sess := c.GetSession("automezzi")
 	if sess != nil {
-		c.Redirect("/home", 302)
+		c.Redirect("/", 302)
 		return
 	}
 	back := strings.Replace(c.Ctx.Input.Param(":back"), ">", "/", -1) // allow for deeper URL such as l1/l2/l3 represented by l1>l2>l3
@@ -151,7 +151,7 @@ func (c *MainController) Login() {
 func (c *MainController) Logout() {
 	c.activeContent("logout")
 	c.DelSession("automezzi")
-	c.Redirect("/home", 302)
+	c.Redirect("/", 302)
 }
 
 //Type userForm is for get information by form
@@ -416,7 +416,7 @@ func (c *MainController) Profile() {
 		}
 	} else {
 		//if user isn't logged redirect in the ompage
-		c.Redirect("/user/login/home", 302)
+		c.Redirect("/user/login/", 302)
 		return
 	}
 
@@ -429,7 +429,7 @@ func (c *MainController) Remove() {
 	//******** c page requires login
 	sess := c.GetSession("automezzi")
 	if sess == nil {
-		c.Redirect("/user/login/home", 302)
+		c.Redirect("/user/login/", 302)
 		return
 	}
 	m := sess.(map[string]interface{})

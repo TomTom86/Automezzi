@@ -310,12 +310,12 @@ input, textarea, select {
 
 #sidebar li li {
 	margin: 0;
-	padding-left: 12px;
+	padding-right: 12px;
 }
 
 #sidebar h2 {
 	margin-bottom: 10px;
-	padding-left: 15px;
+	padding-right: 15px;
 	background: url(/static/img/img02.gif) repeat-x left bottom;
 	font-size: 16px;
 }
