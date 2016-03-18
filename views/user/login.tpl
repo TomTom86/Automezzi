@@ -1,33 +1,37 @@
-<div id="content">
-<h1>Please login</h1>
-&nbsp;
-{{if .flash.error}}
-<h3>{{.flash.error}}</h3>
-&nbsp;
-{{end}}
-{{if .Errors}}
-{{range $rec := .Errors}}
-<h3>{{$rec}}</h3>
-{{end}}
-&nbsp;
-{{end}}
-<form method="POST">
-<table>
-<tr>
-    <td>Email address:</td>
-    <td><input name="email" type="text" autofocus /></td>
-</tr>
-<tr>      
-    <td>Password:</td>
-    <td><input name="password" type="password" /></td>
-</tr>
-<tr><td>&nbsp;</td></tr>
-<tr>
-    <td>&nbsp;</td><td><input type="submit" value="Login" /></td><td><a href="http://localhost:8080/user/register">Register</a></td>
-</tr>
-<tr>
-	<td>&nbsp;</td><td>&nbsp;</td><td><a href="http://localhost:8080/user/forgot">Forgot password?</a></td>
-</tr>
-</table>
-</form>
-</div>
+
+
+
+
+
+    <div class="modal-dialog">
+                    <div class="loginmodal-container">
+                    <div id="brand">&nbsp</div>
+                    &nbsp;
+                    {{if .flash.error}}
+                    <h3>{{.flash.error}}</h3>
+                    &nbsp;
+                    {{end}}
+                    {{if .Errors}}
+                    {{range $rec := .Errors}}
+                    <h3>{{$rec}}</h3>
+                    {{end}}
+                    &nbsp;
+                    {{end}}
+                        &nbsp
+                    <form method="POST">
+                        <input type="text" name="email" placeholder="Username">
+                        <input type="password" name="password" placeholder="Password">
+                        <input type="submit" name="login" value="Login" class="login loginmodal-submit" value="Login">
+                    </form>
+                        
+                    <div class="login-help">
+                        <a href="http://localhost:8080/user/register">Registrati</a> - <a href="http://localhost:8080/user/forgot">Password dimenticata</a>
+                    </div>
+                    </div>
+                </div>
+            </div>
+    </div>
+
+
+
+

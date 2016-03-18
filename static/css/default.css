@@ -13,41 +13,7 @@ body {
 	color: #003471;
 }
 
-/* Special elements for Horrido Hobbies */
 
-a, u {
-    text-decoration: none;
-}
-
-.web2py_paginator ul {
-    list-style-type: none;
-    text-align:right;
-}
-
-.web2py_paginator ul li {
-    padding: 5px;
-    display: inline;
-}
-
-.web2py_paginator ul li.current a {
-    font-weight: bold !important;
-}
-
-.web2py_grid .row_buttons {
-    min-height:25px;
-    vertical-align:middle;
-}
-.web2py_grid .row_buttons a {
-    margin:3px;
-}
-
-.web2py_grid .row_buttons a {
-    line-height:20px;
-    margin-left:2px; margin-right:2px; display:inline-block;
-    padding:3px 5px 3px 5px;
-}
-
-/* End special elements */
 
 h1, h2, h3 {
 	margin: 0;
@@ -241,7 +207,7 @@ input, textarea, select {
 }
 
 /* Post */
-
+/*
 .post {
 }
 
@@ -287,9 +253,9 @@ input, textarea, select {
 .post .meta b {
 	display: none;
 }
-
+*/
 /* Sidebar */
-
+/*
 #sidebar {
 	float: right;
 	width: 195px;
@@ -319,7 +285,7 @@ input, textarea, select {
 	background: url(/static/img/img02.gif) repeat-x left bottom;
 	font-size: 16px;
 }
-
+*/
 /* Search */
 
 #search {

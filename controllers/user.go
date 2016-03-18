@@ -26,6 +26,7 @@ var (
 //TODO la gestione dei permessi utente non è molto sicura, forse è meglio dividere i permessi in una tabella a parte
 // BUG** LE MODIFICHE EFFETTUATE ALLE APPLICAZIONI E QUINDI AL MENU SONO VALIDE SOLO DOPO AVER RILOGGATO
 //Login func manage User's login
+//per migliorare sicurezza dare sempre lo stesso errore "password sbagliata o account inesistente"
 func (c *MainController) Login() {
 	c.activeContent("user/login")
 	sess := c.GetSession("automezzi")

@@ -1,11 +1,23 @@
-	<div style="clear: both;">&nbsp;</div>
-</div>
-<!-- end page -->
-<!-- start footer -->
-<div id="footer">
-	<p id="legal">(c) 2008 YourSite. Design by <a href="http://www.freecsstemplates.org/">Free CSS Templates</a>.</p>
-</div>
-<!-- end footer -->
+  		
+          
+   {{if .InSession}}        
+          
+          <footer class="pull-left footer">
+  			<p class="col-md-12">
+  				<hr class="divider">
+  				Copyright &COPY; 2015 <a href="http://www.ecosi.it">E' Cosi'</a>
+  			</p>
+  		</footer>
+  	</div>
+   {{end}} 
 
-</body>
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="/static/bootstrap/3.3.6/js/jquery.js"></script>
+        <script src="/static/bootstrap/3.3.6/js/boottree.js"></script>
+                <script src="js/filtertable.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="/static/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+  </body>
 </html>
+

@@ -11,16 +11,30 @@
 {{end}}
 &nbsp;
 {{end}}
-<form method="POST">
-<table>
-<tr>
-    <td>Email address:</td>
-    <td><input name="email" type="text" autofocus /></td>
-</tr>
-<tr><td>&nbsp;</td></tr>
-<tr>
-    <td>&nbsp;</td><td><input type="submit" value="Request reset" /></td>
-</tr>
-</table>
-</form>
-</div>
+
+
+  		<div class="col-md-12 content">
+  			  <div class="panel panel-default">
+                <div class="panel-heading">
+                    Recupera Password
+                </div>
+                <div class="panel-body">
+                        <form method="POST">
+                        <table>
+                        <tr>
+                            <td>Email address:</td>
+                            <td><input name="email" type="text" autofocus /></td>
+                        </tr>
+                        <tr><td>&nbsp;</td></tr>
+                        <tr>
+                            <td>&nbsp;</td><td><input type="submit" value="Request reset" /></td>
+                        </tr>
+                        </table>
+                        </form>
+
+                </div>
+              </div>
+
+  		</div>
+
+
