@@ -40,10 +40,26 @@ func (c *MainController) Get() {
 		c.Redirect("/user/login/home", 302)
 		return
 	}
+  
 	m := sess.(map[string]interface{})
 	fmt.Println("username is", m["username"])
 	fmt.Println("logged in at", m["timestamp"])
+    
+    flash := beego.ReadFromRequest(&c.Controller)
+    if _, ok := flash.Data["notice"]; ok {
+        // Display settings successful
+        c.TplName = "notice.tpl"
+    } else if _, ok = flash.Data["error"]; ok {
+        // Display error messages
+        c.TplName = "error.tpl"
+    } else {
+        // Display default settings page
+        c.Data["list"] = GetInfo()
+        c.TplName = "setting_list.tpl"
+    }
 }
+
+
 
 //Notice show flash message
 func (c *MainController) Notice() {
@@ -53,4 +69,9 @@ func (c *MainController) Notice() {
 	if n, ok := flash.Data["notice"]; ok {
 		c.Data["notice"] = n
 	}
+}
+
+
+func GetInfo() string{
+	return "ciao"
 }

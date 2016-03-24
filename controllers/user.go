@@ -23,6 +23,33 @@ var (
 	appcfgMailHostPort, err        = beego.AppConfig.Int("appcfgMailHostPort")
 )
 
+//error
+
+type ErrorController struct {
+    beego.Controller
+}
+
+func (c *ErrorController) Error404() {
+    c.Data["content"] = "page not found"
+    c.TplName = "404.tpl"
+}
+
+func (c *ErrorController) Error500() {
+    c.Data["content"] = "internal server error"
+    c.TplName = "500.tpl"
+}
+
+func (c *ErrorController) ErrorDb() {
+    c.Data["content"] = "database is now down"
+    c.TplName = "dberror.tpl"
+}
+
+
+
+
+
+
+
 //TODO la gestione dei permessi utente non è molto sicura, forse è meglio dividere i permessi in una tabella a parte
 // BUG** LE MODIFICHE EFFETTUATE ALLE APPLICAZIONI E QUINDI AL MENU SONO VALIDE SOLO DOPO AVER RILOGGATO
 //Login func manage User's login
@@ -158,7 +185,7 @@ func (c *MainController) Logout() {
 //Type userForm is for get information by form
 type userForm struct {
 	First     string `form:"first" valid:"Required"`
-	Last      string `form:"last"`
+	Last      string `form:"last" valid:"Required"`
 	Email     string `form:"email" valid:"Email"`
 	Password  string `form:"password" valid:"MinSize(6)"`
 	Confirm   string `form:"password2" valid:"Required"`
@@ -540,8 +567,8 @@ func (c *MainController) Forgot() {
 		m.Body = "Per resettare la tua password, premi sul seguente link: <a href=\"" + link + "\">" + link + "</a><br><br>Grazie,<br>E' Cosi'"
 		sendComunication(m)
 		flash.Notice("Ti abbiamo inviato un link per resettare la password. Controlla la tua email.")
-		flash.Store(&c.Controller)
-		c.Redirect("/notice", 302)
+		//flash.Store(&c.Controller)
+		//c.Redirect("/notice", 302)
 	}
 }
 

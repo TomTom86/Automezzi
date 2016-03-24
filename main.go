@@ -3,6 +3,7 @@ package main
 import (
 	"automezzi/models"
 	_ "automezzi/routers"
+    "automezzi/controllers"
 	"fmt"
 
 	"github.com/astaxie/beego"
@@ -26,7 +27,8 @@ func init() {
 
 func main() {
 	beego.BConfig.WebConfig.Session.SessionOn = true
-	//beego.SessionOn = true
+    beego.ErrorController(&controllers.ErrorController{})
+
 	beego.Run()
 }
 

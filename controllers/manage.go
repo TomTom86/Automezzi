@@ -94,16 +94,21 @@ func (c *MainController) Manage() {
 			flash.Store(&c.Controller)
 			c.Redirect("/notice", 302)
 		}
-
+        /*QUANDO NON CI SONO PARAMETRI??*/
 		//fmt.Println("user nums: ", num)
 		for i := range users {
 			fmt.Println(users[i])
 		}
 		rows := "<tr><center><td>ID</td><td>NOME</td><td>COGNOME</td><td>EMAIL</td><td>MODIFICA</td></center></tr>"
 		for i := range users {
+            /*
 			rows += fmt.Sprintf("<tr><td>%d</td>"+
 				"<td>%s</td><td>%s</td><td>%s</td><td><center><a href='http://%s/manage/user/%s' class=\"user\"> </a></center></td></tr>", users[i].ID, users[i].First, users[i].Last, users[i].Email, appcfgdomainname, users[i].IDkey)
-		}
+	        */
+            rows += fmt.Sprintf("<tr><td>%d</td>"+
+				"<td>%s</td><td>%s</td><td>%s</td><td><center><a href='http://%s/manage/user/%s'><i class=\"glyphicon glyphicon-pencil\"></i></a> </center></td></tr>", users[i].ID, users[i].First, users[i].Last, users[i].Email, appcfgdomainname, users[i].IDkey)
+        	
+    }
 		c.Data["Rows"] = template.HTML(rows)
 	}
 	const pagesize = 10
@@ -140,9 +145,10 @@ func (c *MainController) Manage() {
 	if err != nil {
 		fmt.Println("Query table failed:", err)
 	}
+    /*TABELLA IN BASE AI PARAMETRI*/
 	for i := range users {
 		rows += fmt.Sprintf("<tr><td>%d</td>"+
-			"<td>%s</td><td>%s</td><td>%s</td><td><center><a href='http://%s/manage/user/%s' class=\"user\"> </a></center></td></tr>", users[i].ID, users[i].First, users[i].Last, users[i].Email, appcfgdomainname, users[i].IDkey)
+				"<td>%s</td><td>%s</td><td>%s</td><td><center><a href='http://%s/manage/user/%s'><i class=\"glyphicon glyphicon-pencil\"></i></a></center></td></tr>", users[i].ID, users[i].First, users[i].Last, users[i].Email, appcfgdomainname, users[i].IDkey)
 	}
 	c.Data["Rows"] = template.HTML(rows)
 
