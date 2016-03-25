@@ -26,4 +26,5 @@ func init() {
 	beego.Router("/appadmin/update/:username", &controllers.AdminController{}, "get,post:Update")
 	//beego.Router("/appadmin/manage/:parms", &controllers.AdminController{}, "get,post:Manage")
     beego.Router("/automezzi/", &controllers.MainController{}, "get,post:Acquisto")
+
 }
